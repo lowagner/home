@@ -105,6 +105,7 @@ typedef struct {
     GLuint position;
     GLuint normal;
     GLuint uv;
+    GLuint color_glaze;
     GLuint matrix;
     GLuint sampler;
     GLuint camera;
@@ -255,7 +256,7 @@ GLuint gen_sky_buffer() {
 }
 
 GLuint gen_cube_buffer(float x, float y, float z, float n, int w) {
-    GLfloat *data = malloc_faces(10, 6);
+    GLfloat *data = malloc_faces(13, 6);
     float ao[6][4] = {0};
     float light[6][4] = {
         {0.5, 0.5, 0.5, 0.5},
@@ -266,21 +267,21 @@ GLuint gen_cube_buffer(float x, float y, float z, float n, int w) {
         {0.5, 0.5, 0.5, 0.5}
     };
     make_cube(data, ao, light, 1, 1, 1, 1, 1, 1, x, y, z, n, w);
-    return gen_faces(10, 6, data);
+    return gen_faces(13, 6, data);
 }
 
 GLuint gen_plant_buffer(float x, float y, float z, float n, int w) {
-    GLfloat *data = malloc_faces(10, 4);
+    GLfloat *data = malloc_faces(13, 4);
     float ao = 0;
     float light = 1;
     make_plant(data, ao, light, x, y, z, n, w, 45);
-    return gen_faces(10, 4, data);
+    return gen_faces(13, 4, data);
 }
 
 GLuint gen_player_buffer(float x, float y, float z, float rx, float ry) {
-    GLfloat *data = malloc_faces(10, 6);
+    GLfloat *data = malloc_faces(13, 6);
     make_player(data, x, y, z, rx, ry);
-    return gen_faces(10, 6, data);
+    return gen_faces(13, 6, data);
 }
 
 GLuint gen_text_buffer(float x, float y, float n, char *text) {
@@ -298,16 +299,20 @@ void draw_triangles_3d_ao(Attrib *attrib, GLuint buffer, int count) {
     glEnableVertexAttribArray(attrib->position);
     glEnableVertexAttribArray(attrib->normal);
     glEnableVertexAttribArray(attrib->uv);
+    glEnableVertexAttribArray(attrib->color_glaze);
     glVertexAttribPointer(attrib->position, 3, GL_FLOAT, GL_FALSE,
-        sizeof(GLfloat) * 10, 0);
+        sizeof(GLfloat) * 13, 0);
     glVertexAttribPointer(attrib->normal, 3, GL_FLOAT, GL_FALSE,
-        sizeof(GLfloat) * 10, (GLvoid *)(sizeof(GLfloat) * 3));
+        sizeof(GLfloat) * 13, (GLvoid *)(sizeof(GLfloat) * 3));
     glVertexAttribPointer(attrib->uv, 4, GL_FLOAT, GL_FALSE,
-        sizeof(GLfloat) * 10, (GLvoid *)(sizeof(GLfloat) * 6));
+        sizeof(GLfloat) * 13, (GLvoid *)(sizeof(GLfloat) * 6));
+    glVertexAttribPointer(attrib->color_glaze, 3, GL_FLOAT, GL_FALSE,
+        sizeof(GLfloat) * 13, (GLvoid *)(sizeof(GLfloat) * 10));
     glDrawArrays(GL_TRIANGLES, 0, count);
     glDisableVertexAttribArray(attrib->position);
     glDisableVertexAttribArray(attrib->normal);
     glDisableVertexAttribArray(attrib->uv);
+    glDisableVertexAttribArray(attrib->color_glaze);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
@@ -1055,7 +1060,7 @@ void compute_chunk(WorkerItem *item) {
     } END_MAP_FOR_EACH;
 
     // generate geometry
-    GLfloat *data = malloc_faces(10, faces);
+    GLfloat *data = malloc_faces(13, faces);
     int offset = 0;
     MAP_FOR_EACH(map, ex, ey, ez, ew) {
         if (ew <= 0) {
@@ -1120,7 +1125,7 @@ void compute_chunk(WorkerItem *item) {
                 f1, f2, f3, f4, f5, f6,
                 ex, ey, ez, 0.5, ew);
         }
-        offset += total * 60;
+        offset += total * (13*6);
     } END_MAP_FOR_EACH;
 
     free(opaque);
@@ -1138,7 +1143,7 @@ void generate_chunk(Chunk *chunk, WorkerItem *item) {
     chunk->maxy = item->maxy;
     chunk->faces = item->faces;
     del_buffer(chunk->buffer);
-    chunk->buffer = gen_faces(10, item->faces, item->data);
+    chunk->buffer = gen_faces(13, item->faces, item->data);
     gen_sign_buffer(chunk);
 }
 
@@ -1204,7 +1209,7 @@ void init_chunk(Chunk *chunk, int p, int q) {
     int dx = p * CHUNK_SIZE - 1;
     int dy = 0;
     int dz = q * CHUNK_SIZE - 1;
-    map_alloc(block_map, dx, dy, dz, 0x7fff);
+    map_alloc(block_map, dx, dy, dz, CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE-1);
     map_alloc(light_map, dx, dy, dz, 0xf);
 }
 
@@ -2664,6 +2669,7 @@ int main(int argc, char **argv) {
     block_attrib.position = glGetAttribLocation(program, "position");
     block_attrib.normal = glGetAttribLocation(program, "normal");
     block_attrib.uv = glGetAttribLocation(program, "uv");
+    block_attrib.color_glaze = glGetAttribLocation(program, "color_glaze");
     block_attrib.matrix = glGetUniformLocation(program, "matrix");
     block_attrib.sampler = glGetUniformLocation(program, "sampler");
     block_attrib.extra1 = glGetUniformLocation(program, "sky_sampler");

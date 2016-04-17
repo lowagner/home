@@ -75,6 +75,9 @@ void make_cube_faces(
             *(d++) = dv + (uvs[i][j][1] ? b : a);
             *(d++) = ao[i][j];
             *(d++) = light[i][j];
+            *(d++) = 0.5; // color
+            *(d++) = 0.2;
+            *(d++) = 0.2;
         }
     }
 }
@@ -144,6 +147,9 @@ void make_plant(
             *(d++) = dv + (uvs[i][j][1] ? b : a);
             *(d++) = ao;
             *(d++) = light;
+            *(d++) = 1.0; // color
+            *(d++) = 1.0;
+            *(d++) = 1.0;
         }
     }
     float ma[16];
@@ -151,10 +157,10 @@ void make_plant(
     mat_identity(ma);
     mat_rotate(mb, 0, 1, 0, RADIANS(rotation));
     mat_multiply(ma, mb, ma);
-    mat_apply(data, ma, 24, 3, 10);
+    mat_apply(data, ma, 24, 3, 13);
     mat_translate(mb, px, py, pz);
     mat_multiply(ma, mb, ma);
-    mat_apply(data, ma, 24, 0, 10);
+    mat_apply(data, ma, 24, 0, 13);
 }
 
 void make_player(
@@ -182,10 +188,10 @@ void make_player(
     mat_multiply(ma, mb, ma);
     mat_rotate(mb, cosf(rx), 0, sinf(rx), -ry);
     mat_multiply(ma, mb, ma);
-    mat_apply(data, ma, 36, 3, 10);
+    mat_apply(data, ma, 36, 3, 13);
     mat_translate(mb, x, y, z);
     mat_multiply(ma, mb, ma);
-    mat_apply(data, ma, 36, 0, 10);
+    mat_apply(data, ma, 36, 0, 13);
 }
 
 void make_cube_wireframe(float *data, float x, float y, float z, float n) {

@@ -5,10 +5,12 @@ uniform vec3 camera;
 uniform float fog_distance;
 uniform int ortho;
 
-attribute vec4 position;
+attribute vec3 position;
 attribute vec3 normal;
 attribute vec4 uv;
+attribute vec3 color_glaze;
 
+varying vec3 fragment_glaze;
 varying vec2 fragment_uv;
 varying float fragment_ao;
 varying float fragment_light;
@@ -20,7 +22,8 @@ const float pi = 3.14159265;
 const vec3 light_direction = normalize(vec3(-1.0, 1.0, -1.0));
 
 void main() {
-    gl_Position = matrix * position;
+    gl_Position = matrix * vec4(position, 1.0);
+    fragment_glaze = color_glaze;
     fragment_uv = uv.xy;
     fragment_ao = 0.3 + (1.0 - uv.z) * 0.7;
     fragment_light = uv.w;
@@ -30,7 +33,7 @@ void main() {
         fog_height = 0.0;
     }
     else {
-        float camera_distance = distance(camera, vec3(position));
+        float camera_distance = distance(camera, position);
         fog_factor = pow(clamp(camera_distance / fog_distance, 0.0, 1.0), 4.0);
         float dy = position.y - camera.y;
         float dx = distance(position.xz, camera.xz);

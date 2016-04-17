@@ -184,6 +184,15 @@ float get_daylight() {
     }
 }
 
+unsigned int hash_string(const char *str) {
+    unsigned int h = 5381;
+    int c;
+    // djb2 algorithm
+    while (c = *str++)
+        h = ((h << 5) + h) + c; 
+    return h;
+}
+
 int get_scale_factor() {
     int window_width, window_height;
     int buffer_width, buffer_height;
@@ -2053,6 +2062,8 @@ void parse_command(const char *buffer, int forward) {
         g->mode_changed = 1;
         g->mode = MODE_ONLINE;
         strncpy(g->server_addr, server_addr, MAX_ADDR_LENGTH);
+        seed(hash_string(server_addr)); 
+        srand(time(NULL));
         g->server_port = server_port;
         snprintf(g->db_path, MAX_PATH_LENGTH,
             "cache.%s.%d.db", g->server_addr, g->server_port);
@@ -2060,11 +2071,16 @@ void parse_command(const char *buffer, int forward) {
     else if (sscanf(buffer, "/offline %128s", filename) == 1) {
         g->mode_changed = 1;
         g->mode = MODE_OFFLINE;
+        //g->world_seed = hash_string(filename);
+        seed(hash_string(filename)); 
+        srand(time(NULL));
         snprintf(g->db_path, MAX_PATH_LENGTH, "%s.db", filename);
     }
     else if (strcmp(buffer, "/offline") == 0) {
         g->mode_changed = 1;
         g->mode = MODE_OFFLINE;
+        seed(hash_string(DB_PATH)); 
+        srand(time(NULL));
         snprintf(g->db_path, MAX_PATH_LENGTH, "%s", DB_PATH);
     }
     else if (sscanf(buffer, "/view %d", &radius) == 1) {
@@ -2591,8 +2607,6 @@ void reset_model() {
 int main(int argc, char **argv) {
     // INITIALIZATION //
     curl_global_init(CURL_GLOBAL_DEFAULT);
-    srand(time(NULL));
-    rand();
 
     // WINDOW INITIALIZATION //
     if (!glfwInit()) {
@@ -2708,14 +2722,18 @@ int main(int argc, char **argv) {
     if (argc == 2 || argc == 3) {
         g->mode = MODE_ONLINE;
         strncpy(g->server_addr, argv[1], MAX_ADDR_LENGTH);
+        seed(hash_string(g->server_addr)); 
         g->server_port = argc == 3 ? atoi(argv[2]) : DEFAULT_PORT;
         snprintf(g->db_path, MAX_PATH_LENGTH,
             "cache.%s.%d.db", g->server_addr, g->server_port);
     }
     else {
         g->mode = MODE_OFFLINE;
+        seed(hash_string(DB_PATH)); 
         snprintf(g->db_path, MAX_PATH_LENGTH, "%s", DB_PATH);
     }
+    srand(time(NULL)); // the seed function above messes with randomness.
+    rand();
 
     g->create_radius = CREATE_CHUNK_RADIUS;
     g->render_radius = RENDER_CHUNK_RADIUS;

@@ -1,8 +1,6 @@
-## Craft
+## Fork of Craft
 
-Minecraft clone for Windows, Mac OS X and Linux. Just a few thousand lines of C using modern OpenGL (shaders). Online multiplayer support is included using a Python-based server.
-
-http://www.michaelfogleman.com/craft/
+Minecraft clone for Windows, Mac OS X and Linux. Just a few thousand lines of C using modern OpenGL (shaders). Online multiplayer support is currently borked (go to fogleman's repository for something functional, and see http://www.michaelfogleman.com/craft/).
 
 ![Screenshot](http://i.imgur.com/SH7wcas.png)
 
@@ -14,15 +12,7 @@ http://www.michaelfogleman.com/craft/
 * Simple clouds in the sky (they don't move).
 * Day / night cycles and a textured sky dome.
 * World changes persisted in a sqlite3 database.
-* Multiplayer support!
-
-### Download
-
-Mac and Windows binaries are available on the website.
-
-http://www.michaelfogleman.com/craft/
-
-See below to run from source.
+* No multiplayer support!
 
 ### Install Dependencies
 
@@ -57,21 +47,21 @@ Use the following commands in place of the ones described in the next section.
 Once you have the dependencies (see above), run the following commands in your
 terminal.
 
-    git clone https://github.com/fogleman/Craft.git
-    cd Craft
+    git clone https://github.com/lowagner/home.git
+    cd home
     cmake .
     make
-    ./craft
+    ./home
 
 ### Multiplayer
 
-Register for an account!
+Borked.  Register for an account with the original Craft here:
 
 https://craft.michaelfogleman.com/
 
 #### Client
 
-You can connect to a server with command line arguments...
+Borked.  You can connect to a server with command line arguments...
 
     ./craft craft.michaelfogleman.com
 
@@ -90,20 +80,24 @@ the client.
 
 ### Controls
 
+### Controls
+
 - WASD to move forward, left, backward, right.
 - Space to jump.
-- Left Click to destroy a block.
-- Right Click or Cmd + Left Click to create a block.
-- 1-9 to select the block type to create.
-- E to cycle through the block types.
 - Tab to toggle between walking and flying.
-- ZXCVBN to move in exact directions along the XYZ axes.
 - Left shift to zoom.
 - F to show the scene in orthographic mode.
+- Arrow keys emulate mouse movement.
+
+- Currently editing is disabled, but the following will be used eventually:
+
+- Left/Right click to place different blocks.
+- R to remove a block.
+- 0-9 to select the block type to create.
+- Q,E to cycle through the block types.
+- ZXCVBN to move in exact directions along the XYZ axes.
 - O to observe players in the main view.
 - P to observe players in the picture-in-picture view.
-- Arrow keys emulate mouse movement.
-- Enter emulates mouse click.
 
 ### Chat Commands
 

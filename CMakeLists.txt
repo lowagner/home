@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 2.8)
 
-project(craft)
+project(home)
 
 FILE(GLOB SOURCE_FILES src/*.c)
 
 add_executable(
-    craft
+    home
     ${SOURCE_FILES}
     deps/glew/src/glew.c
     deps/lodepng/lodepng.c
@@ -34,16 +34,16 @@ find_package(CURL REQUIRED)
 include_directories(${CURL_INCLUDE_DIR})
 
 if(APPLE)
-    target_link_libraries(craft glfw
+    target_link_libraries(home glfw
         ${GLFW_LIBRARIES} ${CURL_LIBRARIES})
 endif()
 
 if(UNIX)
-    target_link_libraries(craft dl glfw
+    target_link_libraries(home dl glfw
         ${GLFW_LIBRARIES} ${CURL_LIBRARIES})
 endif()
 
 if(MINGW)
-    target_link_libraries(craft ws2_32.lib glfw
+    target_link_libraries(home ws2_32.lib glfw
         ${GLFW_LIBRARIES} ${CURL_LIBRARIES})
 endif()

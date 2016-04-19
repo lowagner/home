@@ -9,7 +9,7 @@
 #define VSYNC 1
 #define SCROLL_THRESHOLD 0.1
 #define MAX_MESSAGES 4
-#define DB_PATH "craft.db"
+#define DB_PATH "home.db"
 #define USE_CACHE 1
 #define DAY_LENGTH 600
 #define INVERT_MOUSE 0
@@ -36,7 +36,8 @@
 #define CRAFT_KEY_OBSERVE 'O'
 #define CRAFT_KEY_OBSERVE_INSET 'P'
 #define CRAFT_KEY_ITEM_NEXT 'E'
-#define CRAFT_KEY_ITEM_PREV 'R'
+#define CRAFT_KEY_ITEM_PREV 'Q'
+#define CRAFT_KEY_REMOVE_BLOCK 'R'
 #define CRAFT_KEY_ZOOM GLFW_KEY_LEFT_SHIFT
 #define CRAFT_KEY_ORTHO 'F'
 #define CRAFT_KEY_CHAT 't'
@@ -49,6 +50,7 @@
 #define RENDER_SIGN_RADIUS 4
 #define DELETE_CHUNK_RADIUS 14
 #define CHUNK_SIZE 32
+#define CHUNK_PAD 1
 #define COMMIT_INTERVAL 5
 
 #endif

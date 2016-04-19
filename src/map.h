@@ -12,17 +12,20 @@
         int ex = entry->e.x + map->dx; \
         int ey = entry->e.y + map->dy; \
         int ez = entry->e.z + map->dz; \
-        int ew = entry->e.w;
+        W ew = entry->e.w;
 
 #define END_MAP_FOR_EACH }
 
+#include "item.h"
+
 typedef union {
-    unsigned int value;
+    int64_t value;
     struct {
-        unsigned char x;
-        unsigned char y;
-        unsigned char z;
-        char w;
+        W w;
+        uint8_t x;
+        uint8_t y;
+        uint8_t z;
+        uint8_t unused;  // could use this for the light map and save half the memory for lights...
     } e;
 } MapEntry;
 
@@ -39,7 +42,7 @@ void map_alloc(Map *map, int dx, int dy, int dz, int mask);
 void map_free(Map *map);
 void map_copy(Map *dst, Map *src);
 void map_grow(Map *map);
-int map_set(Map *map, int x, int y, int z, int w);
-int map_get(Map *map, int x, int y, int z);
+int map_set(Map *map, int x, int y, int z, W w);
+W map_get(Map *map, int x, int y, int z);
 
 #endif

@@ -3,9 +3,8 @@
 #include "world.h"
 
 void create_world1(int p, int q, world_func func, void *arg) {
-    int pad = 1;
-    for (int dx = -pad; dx < CHUNK_SIZE + pad; dx++) {
-        for (int dz = -pad; dz < CHUNK_SIZE + pad; dz++) {
+    for (int dx = -CHUNK_PAD; dx < CHUNK_SIZE + CHUNK_PAD; dx++) {
+        for (int dz = -CHUNK_PAD; dz < CHUNK_SIZE + CHUNK_PAD; dz++) {
             int flag = 1;
             if (dx < 0 || dz < 0 || dx >= CHUNK_SIZE || dz >= CHUNK_SIZE) {
                 flag = -1;
@@ -16,26 +15,31 @@ void create_world1(int p, int q, world_func func, void *arg) {
             float g = simplex2(-x * 0.01, -z * 0.01, 2, 0.9, 2);
             int mh = g * 32 + 16;
             int h = f * mh;
-            int w = 1;
+            unsigned int material = M_GRASS;
             int t = 12;
             if (h <= t) {
                 h = t;
-                w = 2;
+                material = M_SAND;
             }
+            W w = (W){.shape=flag*S_CUBE, .material=material, .color=0};
             // sand and grass terrain
             for (int y = 0; y < h; y++) {
-                func(x, y, z, w * flag, arg);
+                func(x, y, z, w, arg);
             }
-            if (w == 1) {
+            if (material == M_GRASS) {
                 if (SHOW_PLANTS) {
                     // grass
                     if (simplex2(-x * 0.1, z * 0.1, 4, 0.8, 2) > 0.6) {
-                        func(x, h, z, 17 * flag, arg);
+                        func(x, h, z, (W){.shape=flag*S_PLANT, 
+                                .material=M_PLANT_GRASS, .color=0, .action=0},
+                            arg);
                     }
                     // flowers
                     if (simplex2(x * 0.05, -z * 0.05, 4, 0.8, 2) > 0.7) {
-                        int w = 18 + simplex2(x * 0.1, z * 0.1, 4, 0.8, 2) * 7;
-                        func(x, h, z, w * flag, arg);
+                        func(x, h, z, (W){.shape=flag*S_PLANT, 
+                            .material=(M_RED_FLOWER
+                                + M_FLOWER_COUNT * simplex2(x * 0.1, z * 0.1, 4, 0.8, 2)), 
+                            .color=0, .action=0}, arg);
                     }
                 }
                 // trees
@@ -52,13 +56,15 @@ void create_world1(int p, int q, world_func func, void *arg) {
                                 int d = (ox * ox) + (oz * oz) +
                                     (y - (h + 4)) * (y - (h + 4));
                                 if (d < 11) {
-                                    func(x + ox, y, z + oz, 15, arg);
+                                    func(x + ox, y, z + oz, 
+                                        (W) {.shape=S_CUBE, .material=M_LEAVES, .color=0, .action=0}, 
+                                        arg);
                                 }
                             }
                         }
                     }
                     for (int y = h; y < h + 7; y++) {
-                        func(x, y, z, 5, arg);
+                        func(x, y, z, (W) {.shape=S_CUBE, .material=M_WOOD, .color=0, .action=0}, arg);
                     }
                 }
             }
@@ -68,7 +74,8 @@ void create_world1(int p, int q, world_func func, void *arg) {
                     if (simplex3(
                         x * 0.01, y * 0.1, z * 0.01, 8, 0.5, 2) > 0.75)
                     {
-                        func(x, y, z, 16 * flag, arg);
+                        func(x, y, z, 
+                            (W) {.shape=S_CUBE*flag, .material=M_CLOUD, .color=0, .action=A_CLOUD}, arg);
                     }
                 }
             }
@@ -81,49 +88,62 @@ void biome0(int x, int z, int flag, world_func func, void *arg) {
     float g = simplex2(-x * 0.01, -z * 0.01, 2, 0.9, 2);
     int mh = g * 32 + 16;
     int h = f * mh;
-    int w = 1;
+    unsigned int material = M_GRASS;
     int t = 12;
     if (h <= t) {
         h = t;
-        w = 2;
+        material = M_SAND;
     }
+    W w = (W) {.shape = flag*S_CUBE, .material=material, .color=0, .action=0};
     // sand and grass terrain
     for (int y = 0; y < h; y++) {
-        func(x, y, z, w * flag, arg);
+        func(x, y, z, w, arg);
     }
-    if (w == 1) {
+    if (material == M_GRASS) {
+        int ok = SHOW_TREES;
         if (SHOW_PLANTS) {
             // grass
             if (simplex2(-x * 0.1, z * 0.1, 4, 0.8, 2) > 0.6) {
-                func(x, h, z, 17 * flag, arg);
+                func(x, h, z, (W){.shape=flag*S_PLANT, .material=M_PLANT_GRASS, .color=0, .action=0},
+                    arg);
+                ok = 0;
             }
             // flowers
-            if (simplex2(x * 0.05, -z * 0.05, 4, 0.8, 2) > 0.7) {
-                int w = 18 + simplex2(x * 0.1, z * 0.1, 4, 0.8, 2) * 7;
-                func(x, h, z, w * flag, arg);
+            else if (simplex2(x * 0.05, -z * 0.05, 4, 0.8, 2) > 0.7) {
+                func(x, h, z, 
+                    (W){.shape=flag*S_PLANT, 
+                        .material=(M_RED_FLOWER
+                            + M_FLOWER_COUNT * simplex2(x * 0.1, z * 0.1, 4, 0.8, 2)), 
+                        .color=0, .action=0}, arg);
+                ok = 0;
             }
         }
         // trees
-        int ok = 0;//SHOW_TREES;
-        // if (dx - 4 < 0 || dz - 4 < 0 ||
-        //     dx + 4 >= CHUNK_SIZE || dz + 4 >= CHUNK_SIZE)
-        // {
-        //     ok = 0;
-        // }
-        if (ok && simplex2(x, z, 6, 0.5, 2) > 0.84) {
-            for (int y = h + 3; y < h + 8; y++) {
-                for (int ox = -3; ox <= 3; ox++) {
-                    for (int oz = -3; oz <= 3; oz++) {
-                        int d = (ox * ox) + (oz * oz) +
-                            (y - (h + 4)) * (y - (h + 4));
-                        if (d < 11) {
-                            func(x + ox, y, z + oz, 15, arg);
+        if (ok) {
+            int dx = x%CHUNK_SIZE;
+            int dz = z%CHUNK_SIZE;
+            if (dx - 4 < 0 || dz - 4 < 0 ||
+                dx + 4 >= CHUNK_SIZE || dz + 4 >= CHUNK_SIZE) 
+            {
+                ok = 0;
+            }
+            else if (simplex2(x, z, 6, 0.5, 2) > 0.84) {
+                for (int y = h + 3; y < h + 8; y++) {
+                    for (int ox = -3; ox <= 3; ox++) {
+                        for (int oz = -3; oz <= 3; oz++) {
+                            int d = (ox * ox) + (oz * oz) +
+                                (y - (h + 4)) * (y - (h + 4));
+                            if (d < 11) {
+                                func(x + ox, y, z + oz, 
+                                    (W) {.shape=S_CUBE, .material=M_LEAVES, .color=0, .action=0}, arg);
+                            }
                         }
                     }
                 }
-            }
-            for (int y = h; y < h + 7; y++) {
-                func(x, y, z, 5, arg);
+                for (int y = h; y < h + 7; y++) {
+                    func(x, y, z,
+                        (W) {.shape=S_CUBE, .material=M_WOOD, .color=0, .action=0}, arg);
+                }
             }
         }
     }
@@ -133,7 +153,8 @@ void biome0(int x, int z, int flag, world_func func, void *arg) {
             if (simplex3(
                 x * 0.01, y * 0.1, z * 0.01, 8, 0.5, 2) > 0.75)
             {
-                func(x, y, z, 16 * flag, arg);
+                func(x, y, z, 
+                    (W) {.shape=S_CUBE*flag, .material=M_CLOUD, .color=0, .action=A_CLOUD}, arg);
             }
         }
     }
@@ -142,15 +163,14 @@ void biome0(int x, int z, int flag, world_func func, void *arg) {
 void biome1(int x, int z, int flag, world_func func, void *arg) {
     int lo = simplex2(x * 0.01, z * 0.01, 4, 0.5, 2) * 8 + 8;
     int hi = simplex2(-x * 0.01, -z * 0.01, 4, 0.5, 2) * 32 + 32;
-    int lookup[] = {3, 6, 11, 12, 13};
+    uint8_t lookup[] = {M_STONE, M_CEMENT, M_COBBLE, M_LIGHT_STONE, M_DARK_STONE};
     for (int y = 0; y < lo; y++) {
-        func(x, y, z, 6 * flag, arg);
+        func(x, y, z, (W) {.shape=S_CUBE*flag, .material=M_CEMENT, .color=0, .action=0}, arg);
     }
     for (int y = lo; y < hi; y++) {
-        int i = simplex3(-x * 0.01, -y * 0.01, -z * 0.01, 4, 0.5, 2) * 10;
-        int w = lookup[i % 5];
         if (simplex3(x * 0.01, y * 0.01, z * 0.01, 4, 0.5, 2) > 0.5) {
-            func(x, y, z, w * flag, arg);
+            int i = simplex3(-x * 0.01, -y * 0.01, -z * 0.01, 4, 0.5, 2) * 10;
+            func(x, y, z, (W) {.shape=S_CUBE*flag, .material=lookup[i%5], .color=0, .action=0}, arg);
         }
     }
     if (SHOW_CLOUDS) {
@@ -158,16 +178,15 @@ void biome1(int x, int z, int flag, world_func func, void *arg) {
             if (simplex3(
                 x * 0.01, y * 0.1, z * 0.01, 8, 0.5, 2) > 0.75)
             {
-                func(x, y, z, 16 * flag, arg);
+                func(x, y, z, (W){.shape=S_CUBE*flag, .material=M_CLOUD, .color=0, .action=0}, arg);
             }
         }
     }
 }
 
 void create_world2(int p, int q, world_func func, void *arg) {
-    int pad = 1;
-    for (int dx = -pad; dx < CHUNK_SIZE + pad; dx++) {
-        for (int dz = -pad; dz < CHUNK_SIZE + pad; dz++) {
+    for (int dx = -CHUNK_PAD; dx < CHUNK_SIZE + CHUNK_PAD; dx++) {
+        for (int dz = -CHUNK_PAD; dz < CHUNK_SIZE + CHUNK_PAD; dz++) {
             int flag = 1;
             if (dx < 0 || dz < 0 || dx >= CHUNK_SIZE || dz >= CHUNK_SIZE) {
                 flag = -1;

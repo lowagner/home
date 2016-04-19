@@ -1,6 +1,5 @@
 #include <math.h>
 #include "cube.h"
-#include "item.h"
 #include "matrix.h"
 #include "util.h"
 
@@ -8,7 +7,7 @@ void make_cube_faces(
     float *data, float ao[6][4], float light[6][4],
     int left, int right, int top, int bottom, int front, int back,
     int wleft, int wright, int wtop, int wbottom, int wfront, int wback,
-    float x, float y, float z, float n)
+    float x, float y, float z, float n, float *color)
 {
     static const float positions[6][4][3] = {
         {{-1, -1, -1}, {-1, -1, +1}, {-1, +1, -1}, {-1, +1, +1}},
@@ -75,9 +74,9 @@ void make_cube_faces(
             *(d++) = dv + (uvs[i][j][1] ? b : a);
             *(d++) = ao[i][j];
             *(d++) = light[i][j];
-            *(d++) = 0.5; // color
-            *(d++) = 0.2;
-            *(d++) = 0.2;
+            *(d++) = color[0];
+            *(d++) = color[1];
+            *(d++) = color[2];
         }
     }
 }
@@ -85,24 +84,26 @@ void make_cube_faces(
 void make_cube(
     float *data, float ao[6][4], float light[6][4],
     int left, int right, int top, int bottom, int front, int back,
-    float x, float y, float z, float n, int w)
+    float x, float y, float z, float n, W w)
 {
-    int wleft = blocks[w][0];
-    int wright = blocks[w][1];
-    int wtop = blocks[w][2];
-    int wbottom = blocks[w][3];
-    int wfront = blocks[w][4];
-    int wback = blocks[w][5];
+    int wm = w.material;
+    int wleft = block_textures[wm][0];
+    int wright = block_textures[wm][1];
+    int wtop = block_textures[wm][2];
+    int wbottom = block_textures[wm][3];
+    int wfront = block_textures[wm][4];
+    int wback = block_textures[wm][5];
+    //float r = (w.color >> 12)/15.0, g = ((w.color >> 8)&15)/15.0, b = ((w.color >> 4)&15)/15.0;
     make_cube_faces(
         data, ao, light,
         left, right, top, bottom, front, back,
         wleft, wright, wtop, wbottom, wfront, wback,
-        x, y, z, n);
+        x, y, z, n, color_palette[w.color]);
 }
 
 void make_plant(
     float *data, float ao, float light,
-    float px, float py, float pz, float n, int w, float rotation)
+    float px, float py, float pz, float n, W w, float rotation)
 {
     static const float positions[4][4][3] = {
         {{ 0, -1, -1}, { 0, -1, +1}, { 0, +1, -1}, { 0, +1, +1}},
@@ -132,8 +133,10 @@ void make_plant(
     float s = 0.0625;
     float a = 0;
     float b = s;
-    float du = (plants[w] % 16) * s;
-    float dv = (plants[w] / 16) * s;
+    int uv = plant_textures[w.material];
+    float du = (uv % 16) * s;
+    float dv = (uv / 16) * s;
+    const float *c = color_palette[w.color];
     for (int i = 0; i < 4; i++) {
         for (int v = 0; v < 6; v++) {
             int j = indices[i][v];
@@ -147,9 +150,9 @@ void make_plant(
             *(d++) = dv + (uvs[i][j][1] ? b : a);
             *(d++) = ao;
             *(d++) = light;
-            *(d++) = 1.0; // color
-            *(d++) = 1.0;
-            *(d++) = 1.0;
+            *(d++) = c[0]; // color
+            *(d++) = c[1];
+            *(d++) = c[2];
         }
     }
     float ma[16];
@@ -180,7 +183,8 @@ void make_player(
         data, ao, light,
         1, 1, 1, 1, 1, 1,
         226, 224, 241, 209, 225, 227,
-        0, 0, 0, 0.4);
+        0, 0, 0, 0.4,
+        color_palette[0]); 
     float ma[16];
     float mb[16];
     mat_identity(ma);

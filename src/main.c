@@ -139,6 +139,7 @@ typedef struct {
     int debug;
     W M[10][2];
     int M_index;
+    float remove_blocks;
     int scale;
     int ortho;
     float fov;
@@ -630,7 +631,7 @@ W _hit_test(
         if (nx != px || ny != py || nz != pz) {
             hw = map_get(map, nx, ny, nz);
             if (g->debug)
-                printf("looking at (%d,%d,%d)->(%d)\n",nx,ny,nz,hw.value);
+                printf("  looking at (%d,%d,%d)->(%d)\n",nx,ny,nz,hw.value);
             if (hw.shape > 0) {
                 if (previous) {
                     *hx = px; *hy = py; *hz = pz;
@@ -664,7 +665,7 @@ W hit_test(
         }
         int hx, hy, hz;
         if (g->debug)
-            printf("in chunk %d:\n  ", i);
+            printf("in chunk %d:\n", i);
         W hw = _hit_test(&chunk->map, 8, previous,
             x, y, z, vx, vy, vz, &hx, &hy, &hz);
         if (hw.shape > 0) {
@@ -1815,7 +1816,6 @@ void render_item(Attrib *attrib) {
     glUniform3f(attrib->camera, 0, 0, 5);
     glUniform1i(attrib->sampler, 0);
     glUniform1f(attrib->timer, time_of_day());
-    
     draw_item(attrib, g->M[g->M_index][0]);
 }
 
@@ -2183,7 +2183,9 @@ void on_light() {
 void on_remove_block() {
     State *s = &g->players->state;
     int hx, hy, hz;
+    g->debug = 1;
     W hw = hit_test(0, s->x, s->y, s->z, s->rx, s->ry, &hx, &hy, &hz);
+    g->debug = 0;
     if (hy > 0 && hy < 256 && is_destructable(hw)) {
         set_block(hx, hy, hz, (W){.value=0});
         record_block(hx, hy, hz, (W){.value=0});
@@ -2230,6 +2232,9 @@ void on_key(GLFWwindow *window, int key, int scancode, int action, int mods) {
     int exclusive =
         glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED;
     if (action == GLFW_RELEASE) {
+        if (!g->typing && key == CRAFT_KEY_REMOVE_BLOCK) {
+            g->remove_blocks = 0;
+        }
         return;
     }
     if (key == GLFW_KEY_BACKSPACE) {
@@ -2291,6 +2296,9 @@ void on_key(GLFWwindow *window, int key, int scancode, int action, int mods) {
         }
     }
     if (!g->typing) {
+        if (key == CRAFT_KEY_REMOVE_BLOCK) {
+            g->remove_blocks = 0.0001;
+        }
         if (key == CRAFT_KEY_FLY) {
             g->flying = !g->flying;
         }
@@ -2616,6 +2624,7 @@ void reset_model() {
 int main(int argc, char **argv) {
     // INITIALIZATION //
     curl_global_init(CURL_GLOBAL_DEFAULT);
+    g->M_index = 0;
 
     // WINDOW INITIALIZATION //
     if (!glfwInit()) {
@@ -2828,6 +2837,14 @@ int main(int argc, char **argv) {
 
             // HANDLE MOUSE INPUT //
             handle_mouse_input();
+
+            if (g->remove_blocks > 0.0f) {
+                g->remove_blocks -= dt;
+                if (g->remove_blocks <= 0.0f) {
+                    g->remove_blocks = CRAFT_WAIT_REMOVE_BLOCK;
+                    on_remove_block();
+                }
+            }
 
             // HANDLE MOVEMENT //
             handle_movement(dt);

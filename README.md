@@ -83,16 +83,17 @@ the client.
 ### Controls
 
 - WASD to move forward, left, backward, right.
+- Left/Right Click to place different blocks.
+- Control+Left/Right Click on a block to select it as the Left/Right Click block.
+- R to remove a block.
 - Space to jump.
 - Tab to toggle between walking and flying.
 - Left shift to zoom.
 - F to show the scene in orthographic mode.
 - Arrow keys emulate mouse movement.
 
-- Currently editing is disabled, but the following will be used eventually:
+- Currently some missing functionality:
 
-- Left/Right click to place different blocks.
-- R to remove a block.
 - 0-9 to select the block type to create.
 - Q,E to cycle through the block types.
 - ZXCVBN to move in exact directions along the XYZ axes.

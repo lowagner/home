@@ -630,8 +630,8 @@ W _hit_test(
         int nz = roundf(z);
         if (nx != px || ny != py || nz != pz) {
             hw = map_get(map, nx, ny, nz);
-            if (g->debug)
-                printf("  looking at (%d,%d,%d)->(%d)\n",nx,ny,nz,hw.value);
+            //if (g->debug)
+                //printf("  looking at (%d,%d,%d)->(%d)\n",nx,ny,nz,hw.value);
             if (hw.shape > 0) {
                 if (previous) {
                     *hx = px; *hy = py; *hz = pz;
@@ -658,26 +658,31 @@ W hit_test(
     int q = chunked(z);
     float vx, vy, vz;
     get_sight_vector(rx, ry, &vx, &vy, &vz);
+    //if (g->debug)
+    //    printf("hit test %d, %d:\n", p, q);
     for (int i = 0; i < g->chunk_count; i++) {
         Chunk *chunk = g->chunks + i;
         if (chunk_distance(chunk, p, q) > 1) {
             continue;
         }
         int hx, hy, hz;
-        if (g->debug)
-            printf("in chunk %d:\n", i);
+        //if (g->debug)
+        //    printf(" in chunk %d:\n", i);
         W hw = _hit_test(&chunk->map, 8, previous,
             x, y, z, vx, vy, vz, &hx, &hy, &hz);
-        if (hw.shape > 0) {
-            float d = sqrtf(
-                powf(hx - x, 2) + powf(hy - y, 2) + powf(hz - z, 2));
-            if (best == 0 || d < best) {
-                best = d;
+        if (hw.value) {
+            float d2 = powf(hx - x, 2) + powf(hy - y, 2) + powf(hz - z, 2);
+            if (best == 0 || d2 < best) {
+                best = d2;
                 *bx = hx; *by = hy; *bz = hz;
                 result = hw;
+                //if (g->debug)
+                //    printf(" best block yet: (%d,%d,%d) -> %d!\n", hx, hy, hz, hw.value);
             }
         }
     }
+    //if (g->debug)
+    //    printf("done hit\n");
     return result;
 }
 
@@ -1647,7 +1652,7 @@ int render_chunks(Attrib *attrib, Player *player) {
     glUniform1i(attrib->sampler, 0);
     glUniform1i(attrib->extra1, 2);
     glUniform1f(attrib->extra2, light);
-    glUniform1f(attrib->extra3, g->render_radius * CHUNK_SIZE);
+    glUniform1f(attrib->extra3, g->render_radius * CHUNK_SIZE * (0.25+0.75*light));
     glUniform1i(attrib->extra4, g->ortho);
     glUniform1f(attrib->timer, time_of_day());
     for (int i = 0; i < g->chunk_count; i++) {
@@ -2183,9 +2188,9 @@ void on_light() {
 void on_remove_block() {
     State *s = &g->players->state;
     int hx, hy, hz;
-    g->debug = 1;
+    //g->debug = 1;
     W hw = hit_test(0, s->x, s->y, s->z, s->rx, s->ry, &hx, &hy, &hz);
-    g->debug = 0;
+    //g->debug = 0;
     if (hy > 0 && hy < 256 && is_destructable(hw)) {
         set_block(hx, hy, hz, (W){.value=0});
         record_block(hx, hy, hz, (W){.value=0});
@@ -2219,9 +2224,9 @@ void on_control_click(int mouse_button) {
 void rotate_item(int dir, int control, int shift) {
     State *s = &g->players->state;
     int hx, hy, hz;
-    g->debug = 1;
+    //g->debug = 1;
     W w = hit_test(0, s->x, s->y, s->z, s->rx, s->ry, &hx, &hy, &hz);
-    g->debug = 0;
+    //g->debug = 0;
     if (w.value == 0)
         return;
     printf("need to rotate the object with w=%d\n",w.value);
@@ -2411,7 +2416,7 @@ void create_window() {
         window_height = modes[mode_count - 1].height;
     }
     g->window = glfwCreateWindow(
-        window_width, window_height, "Craft", monitor, NULL);
+        window_width, window_height, "Home", monitor, NULL);
 }
 
 void handle_mouse_input() {
@@ -2453,7 +2458,7 @@ void handle_movement(double dt) {
     int sz = 0;
     int sx = 0;
     if (!g->typing) {
-        float m = dt * 1.0;
+        float m = dt * 1.5;
         g->ortho = glfwGetKey(g->window, CRAFT_KEY_ORTHO) ? 64 : 0;
         g->fov = glfwGetKey(g->window, CRAFT_KEY_ZOOM) ? 15 : 60;
         if (glfwGetKey(g->window, CRAFT_KEY_FORWARD)) sz--;
@@ -2477,7 +2482,7 @@ void handle_movement(double dt) {
             }
         }
     }
-    float speed = g->flying ? 20 : 5;
+    float speed = g->flying ? 22 : 8;
     int estimate = roundf(sqrtf(
         powf(vx * speed, 2) +
         powf(vy * speed + ABS(dy) * 2, 2) +

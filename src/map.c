@@ -60,10 +60,10 @@ int map_set(Map *map, int x, int y, int z, W w) {
     if (overwrite) {
         if (entry->e.w.value != w.value) {
             entry->e.w.value = w.value;
-            return 1;
         }
+        return 1;
     }
-    //else if (w.value) {
+    else if (w.value) {
         entry->e.x = x;
         entry->e.y = y;
         entry->e.z = z;
@@ -73,7 +73,7 @@ int map_set(Map *map, int x, int y, int z, W w) {
             map_grow(map);
         }
         return 1;
-    //}
+    }
     return 0;
 }
 

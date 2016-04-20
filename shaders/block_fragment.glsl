@@ -17,12 +17,26 @@ varying float diffuse;
 const float pi = 3.14159265;
 
 void main() {
-    vec3 color = vec3(texture2D(sampler, fragment_uv));
-    if (color == vec3(1.0, 0.0, 1.0)) {
-        discard;
+    vec3 color;
+    bool cloud;
+    float alpha = 1;
+    if (fragment_glaze[0] == 0.99 && fragment_glaze[1] == 0.99 && fragment_glaze[2] == 1.0) {
+        // water
+        float sint = sin(20*pi*timer);
+        float cost = cos(20*pi*timer);
+        color = vec3(texture2D(sampler, fragment_uv + (0.5*0.0625)*vec2(1+cost, 1-sint)));
+        cloud = false;
+        //alpha = 0.75 * 0.5*(1+fragment_light);
+    } else {
+        color = vec3(texture2D(sampler, fragment_uv));
+        cloud = color == vec3(1.0, 1.0, 1.0);
+        if (cloud && bool(ortho)) {
+            discard;
+        }
+        //alpha = 1;
     }
-    bool cloud = color == vec3(1.0, 1.0, 1.0);
-    if (cloud && bool(ortho)) {
+
+    if (color == vec3(1.0, 0.0, 1.0)) {
         discard;
     }
     float value = (fragment_glaze[0] + fragment_glaze[1] + fragment_glaze[2])/3.0;
@@ -40,5 +54,5 @@ void main() {
     color = clamp(color * light * ao, vec3(0.0), vec3(1.0));
     vec3 sky_color = vec3(texture2D(sky_sampler, vec2(timer, fog_height)));
     color = mix(color, sky_color, fog_factor);
-    gl_FragColor = vec4(color, 1.0);
+    gl_FragColor = vec4(color, alpha);
 }

@@ -40,7 +40,7 @@ const int block_textures[256][6] = {
     {50, 50, 50, 50, 50, 50}, // 19 - red flower 
     {51, 51, 51, 51, 51, 51}, // 20 - purple flower
     {51, 51, 51, 51, 51, 51}, // 20 - purple flower
-    [0xff]={}, // 255 - water
+    [0xff]={30, 30, 30, 30, 30, 30}, // 255 - water
 };
 
 const int plant_textures[256] = {
@@ -60,6 +60,7 @@ float color_palette[256][3] = {
     {1.0, 0, 0},
     {0, 1.0, 0},
     {0, 0, 1.0},
+    [0xff]={0.99, 0.99, 1.0},
 };
 
 int is_plant(W w) {
@@ -72,7 +73,7 @@ int is_obstacle(W w) {
     if (is_plant(w)) {
         return 0;
     }
-    if (w.value == 0) // || (w.color == M_CLOUD)) // allow/do not allow walking on clouds
+    if (w.value == 0 || w.material == M_WATER) // || (w.color == M_CLOUD)) // allow/do not allow walking on clouds
         return 0;
     return 1;
 }

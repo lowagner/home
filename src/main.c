@@ -307,6 +307,8 @@ GLuint gen_text_buffer(float x, float y, float n, char *text) {
 }
 
 void draw_triangles_3d_ao(Attrib *attrib, GLuint buffer, int count) {
+    //glEnable(GL_BLEND);
+    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  // would need to sort triangles back to front
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
     glEnableVertexAttribArray(attrib->position);
     glEnableVertexAttribArray(attrib->normal);
@@ -326,6 +328,7 @@ void draw_triangles_3d_ao(Attrib *attrib, GLuint buffer, int count) {
     glDisableVertexAttribArray(attrib->uv);
     glDisableVertexAttribArray(attrib->color_glaze);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+    //glDisable(GL_BLEND);
 }
 
 void draw_triangles_3d_text(Attrib *attrib, GLuint buffer, int count) {
@@ -2629,7 +2632,7 @@ void init_M() {
     // TODO:  add a M file to the $(HOME)/.config directory...
     g->M_index = 1;
     g->M[0][0] = (W){.shape=S_CUBE, .material=M_CLOUD, .color=0, .action=A_CLOUD};
-    g->M[0][1] = (W){.shape=S_CUBE, .material=M_WATER, .color=0, .action=A_WATER};
+    g->M[0][1] = (W){.shape=S_CUBE, .material=M_WATER, .color=255, .action=A_WATER};
     g->M[1][0] = (W){.shape=S_CUBE, .material=M_GRASS, .color=0, .action=0};
     g->M[1][1] = (W){.shape=S_CUBE, .material=M_SAND, .color=0, .action=0};
     g->M[2][0] = (W){.shape=S_HALF_NY, .material=M_CEMENT, .color=0, .action=0};

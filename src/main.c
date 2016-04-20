@@ -986,9 +986,9 @@ void compute_chunk(WorkerItem *item) {
     char *light = (char *)calloc(XZ_SIZE * XZ_SIZE * Y_SIZE, sizeof(char));
     char *highest = (char *)calloc(XZ_SIZE * XZ_SIZE, sizeof(char));
 
-    int ox = item->p * CHUNK_SIZE - CHUNK_SIZE - 1;
-    int oy = -1;
-    int oz = item->q * CHUNK_SIZE - CHUNK_SIZE - 1;
+    int ox = item->p * CHUNK_SIZE - CHUNK_SIZE - CHUNK_PAD;
+    int oy = -CHUNK_PAD;
+    int oz = item->q * CHUNK_SIZE - CHUNK_SIZE - CHUNK_PAD;
 
     // check for lights
     int has_light = 0;
@@ -2629,7 +2629,9 @@ void reset_model() {
 int main(int argc, char **argv) {
     // INITIALIZATION //
     curl_global_init(CURL_GLOBAL_DEFAULT);
-    g->M_index = 0;
+    g->M_index = 1;
+    g->M[0][0] = (W){.shape=S_CUBE, .material=M_CLOUD, .color=0, .action=A_CLOUD};
+    g->M[0][1] = (W){.shape=S_CUBE, .material=M_WATER, .color=0, .action=A_WATER};
 
     // WINDOW INITIALIZATION //
     if (!glfwInit()) {

@@ -21,8 +21,8 @@ const int block_textures[256][6] = {
     {0,0,0,0,0,0},
     {16, 16, 32, 0, 16, 16}, // 1 - grass
     {1, 1, 1, 1, 1, 1}, // 2 - sand
-    {2, 2, 2, 2, 2, 2}, // 3 - stone
-    {3, 3, 3, 3, 3, 3}, // 4 - brick
+    {16+1, 16+2, 32+2, 2, 16+2, 16+1}, // 3 - stone
+    {16+3, 16+3, 32+3, 3, 16+3, 16+3}, // 4 - brick
     {20, 20, 36, 4, 20, 20}, // 5 - wood
     {5, 5, 5, 5, 5, 5}, // 6 - cement
     {6, 6, 6, 6, 6, 6}, // 7 - dirt
@@ -82,6 +82,8 @@ int is_transparent(W w) {
         switch (w.material) {
             case M_GLASS:
             case M_LEAVES:
+            case M_CLOUD:
+            case M_WATER:
                 return 1;
             default:
                 return 0;

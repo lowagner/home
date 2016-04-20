@@ -83,8 +83,10 @@ the client.
 ### Controls
 
 - WASD to move forward, left, backward, right.
-- Left/Right Click to place different blocks.
-- Control+Left/Right Click on a block to select it as the Left/Right Click block.
+- Left/Right Click to place different block types.
+- 0-9 to select different block types for Left/Right click.
+- Scroll Up/Down to cycle through the block types.
+- Control+Left/Right Click on a block to select it as the Left/Right block type.
 - R to remove a block.
 - Space to jump.
 - Tab to toggle between walking and flying.
@@ -94,7 +96,6 @@ the client.
 
 - Currently some missing functionality:
 
-- 0-9 to select the block type to create.
 - Q,E to cycle through the block types.
 - ZXCVBN to move in exact directions along the XYZ axes.
 - O to observe players in the main view.

@@ -2359,19 +2359,18 @@ void on_char(GLFWwindow *window, unsigned int u) {
 }
 
 void on_scroll(GLFWwindow *window, double xdelta, double ydelta) {
-    //static double ypos = 0;
-    //ypos += ydelta;
-    //if (ypos < -SCROLL_THRESHOLD) {
-    //    g->shape_index = (g->shape_index + 1) % item_count;
-    //    ypos = 0;
-    //}
-    //if (ypos > SCROLL_THRESHOLD) {
-    //    g->shape_index--;
-    //    if (g->shape_index < 0) {
-    //        g->shape_index = item_count - 1;
-    //    }
-    //    ypos = 0;
-    //}
+    static double ypos = 0;
+    ypos += ydelta;
+    if (ypos < -SCROLL_THRESHOLD) {
+        g->M_index = (g->M_index + 1) % 10;
+        ypos = 0;
+    }
+    if (ypos > SCROLL_THRESHOLD) {
+        if (--g->M_index < 0) {
+            g->M_index = 9;
+        }
+        ypos = 0;
+    }
 }
 
 void on_mouse_button(GLFWwindow *window, int button, int action, int mods) {
@@ -2626,12 +2625,23 @@ void reset_model() {
     g->time_changed = 1;
 }
 
-int main(int argc, char **argv) {
-    // INITIALIZATION //
-    curl_global_init(CURL_GLOBAL_DEFAULT);
+void init_M() {
+    // TODO:  add a M file to the $(HOME)/.config directory...
     g->M_index = 1;
     g->M[0][0] = (W){.shape=S_CUBE, .material=M_CLOUD, .color=0, .action=A_CLOUD};
     g->M[0][1] = (W){.shape=S_CUBE, .material=M_WATER, .color=0, .action=A_WATER};
+    g->M[1][0] = (W){.shape=S_CUBE, .material=M_GRASS, .color=0, .action=0};
+    g->M[1][1] = (W){.shape=S_CUBE, .material=M_SAND, .color=0, .action=0};
+    g->M[2][0] = (W){.shape=S_HALF_NY, .material=M_CEMENT, .color=0, .action=0};
+    g->M[2][1] = (W){.shape=S_HALF_PY, .material=M_CEMENT, .color=0, .action=0};
+    g->M[3][0] = (W){.shape=S_HALF_PX, .material=M_BRICK, .color=0, .action=0};
+    g->M[3][1] = (W){.shape=S_CENTER_X, .material=M_GLASS, .color=0, .action=0};
+}
+
+int main(int argc, char **argv) {
+    // INITIALIZATION //
+    curl_global_init(CURL_GLOBAL_DEFAULT);
+    init_M();
 
     // WINDOW INITIALIZATION //
     if (!glfwInit()) {

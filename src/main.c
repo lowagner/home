@@ -1075,8 +1075,10 @@ void compute_chunk(WorkerItem *item) {
         if (total == 0) {
             continue;
         }
-        if (is_plant(ew)) {
-            total = 4;
+        if (ew.shape != S_CUBE) {
+            total = number_faces(ew, f1, f2, f3, f4, f5, f6);
+            if (total == 0)
+                continue;
         }
         miny = MIN(miny, ey);
         maxy = MAX(maxy, ey);
@@ -2069,36 +2071,36 @@ void parse_command(const char *buffer, int forward) {
     int server_port = DEFAULT_PORT;
     char filename[MAX_PATH_LENGTH];
     int radius, count, xc, yc, zc;
-    if (sscanf(buffer, "/identity %128s %128s", username, token) == 2) {
-        db_auth_set(username, token);
-        add_message("Successfully imported identity token!");
-        login();
-    }
-    else if (strcmp(buffer, "/logout") == 0) {
-        db_auth_select_none();
-        login();
-    }
-    else if (sscanf(buffer, "/login %128s", username) == 1) {
-        if (db_auth_select(username)) {
-            login();
-        }
-        else {
-            add_message("Unknown username.");
-        }
-    }
-    else if (sscanf(buffer,
-        "/online %128s %d", server_addr, &server_port) >= 1)
-    {
-        g->mode_changed = 1;
-        g->mode = MODE_ONLINE;
-        strncpy(g->server_addr, server_addr, MAX_ADDR_LENGTH);
-        seed(hash_string(server_addr)); 
-        srand(time(NULL));
-        g->server_port = server_port;
-        snprintf(g->db_path, MAX_PATH_LENGTH,
-            "cache.%s.%d.db", g->server_addr, g->server_port);
-    }
-    else if (sscanf(buffer, "/offline %128s", filename) == 1) {
+    //if (sscanf(buffer, "/identity %128s %128s", username, token) == 2) {
+    //    db_auth_set(username, token);
+    //    add_message("Successfully imported identity token!");
+    //    login();
+    //}
+    //else if (strcmp(buffer, "/logout") == 0) {
+    //    db_auth_select_none();
+    //    login();
+    //}
+    //else if (sscanf(buffer, "/login %128s", username) == 1) {
+    //    if (db_auth_select(username)) {
+    //        login();
+    //    }
+    //    else {
+    //        add_message("Unknown username.");
+    //    }
+    //}
+    //else if (sscanf(buffer,
+    //    "/online %128s %d", server_addr, &server_port) >= 1)
+    //{
+    //    g->mode_changed = 1;
+    //    g->mode = MODE_ONLINE;
+    //    strncpy(g->server_addr, server_addr, MAX_ADDR_LENGTH);
+    //    seed(hash_string(server_addr)); 
+    //    srand(time(NULL));
+    //    g->server_port = server_port;
+    //    snprintf(g->db_path, MAX_PATH_LENGTH,
+    //        "cache.%s.%d.db", g->server_addr, g->server_port);
+    //} else 
+    if (sscanf(buffer, "/offline %128s", filename) == 1) {
         g->mode_changed = 1;
         g->mode = MODE_OFFLINE;
         //g->world_seed = hash_string(filename);
@@ -2632,7 +2634,7 @@ void init_M() {
     // TODO:  add a M file to the $(HOME)/.config directory...
     g->M_index = 1;
     g->M[0][0] = (W){.shape=S_CUBE, .material=M_CLOUD, .color=0, .action=A_CLOUD};
-    g->M[0][1] = (W){.shape=S_CUBE, .material=M_WATER, .color=255, .action=A_WATER};
+    g->M[0][1] = (W){.shape=S_HALF_NY, .material=M_WATER, .color=255, .action=A_WATER};
     g->M[1][0] = (W){.shape=S_CUBE, .material=M_GRASS, .color=0, .action=0};
     g->M[1][1] = (W){.shape=S_CUBE, .material=M_SAND, .color=0, .action=0};
     g->M[2][0] = (W){.shape=S_HALF_NY, .material=M_CEMENT, .color=0, .action=0};

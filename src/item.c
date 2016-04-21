@@ -35,24 +35,19 @@ const int block_textures[256][6] = {
     {13, 13, 13, 13, 13, 13}, // 14 - chest
     {14, 14, 14, 14, 14, 14}, // 15 - leaves
     {15, 15, 15, 15, 15, 15}, // 16 - cloud
-    {48, 48, 48, 48, 48, 48}, // 17 - plants 
-    {49, 49, 49, 49, 49, 49}, // 18 - yellow flower 
-    {50, 50, 50, 50, 50, 50}, // 19 - red flower 
-    {51, 51, 51, 51, 51, 51}, // 20 - purple flower
-    {51, 51, 51, 51, 51, 51}, // 20 - purple flower
-    [0xff]={30, 30, 30, 30, 30, 30}, // 255 - water
+    {244, 244, 244, 244, 244, 244}, // 17 - plants 
+    {245, 245, 245, 245, 245, 245}, // 18 - flowers 
+    {246, 246, 246, 246, 246, 246}, // 19 - 
+    {247, 247, 247, 247, 247, 247}, // 20 - 
+    {248, 248, 248, 248, 248, 248}, // 21 - 
+    {249, 249, 249, 249, 249, 249}, // 22 - 
+    {250, 250, 250, 250, 250, 250}, // 22 - 
+    [0xff]={30+16, 30+32, 30, 30, 30+16, 30+32}, // 255 - water
 };
 
 const int plant_textures[256] = {
     // w => tile
-    32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 0 - 16
-    48, // 17 - tall grass
-    49, // 18 - yellow flower
-    50, // 19 - red flower
-    51, // 20 - purple flower
-    52, // 21 - sun flower
-    53, // 22 - white flower
-    54, // 23 - blue flower
+    [17]=244,245,246,247,248,249,250
 };
 
 float color_palette[256][3] = {
@@ -79,7 +74,8 @@ int is_obstacle(W w) {
 }
 
 int is_transparent(W w) {
-    if (w.shape == S_CUBE) {
+    int shape = w.shape < 0 ? -w.shape : w.shape;
+    if (shape == S_CUBE) {
         switch (w.material) {
             case M_GLASS:
             case M_LEAVES:
@@ -99,4 +95,15 @@ int is_destructable(W w) {
         return 0;
 
     return 1;
+}
+
+
+int number_faces(W w, int f1, int f2, int f3, int f4, int f5, int f6) {
+    // you can assume at least one of f1-6 are nonzero.
+    int shape = w.shape < 0 ? -w.shape : w.shape;
+    switch (shape) {
+        case S_PLANT:
+            return 4;
+    }
+    return f1+f2+f3+f4+f5+f6;
 }

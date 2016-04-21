@@ -1796,19 +1796,6 @@ void render_crosshairs(Attrib *attrib) {
     glDisable(GL_COLOR_LOGIC_OP);
 }
 
-void draw_item(Attrib *attrib, W w) {
-    if (is_plant(w)) {
-        GLuint buffer = gen_plant_buffer(0, 0, 0, 0.5, w);
-        draw_plant(attrib, buffer);
-        del_buffer(buffer);
-    }
-    else {
-        GLuint buffer = gen_cube_buffer(0, 0, 0, 0.5, w);
-        draw_cube(attrib, buffer);
-        del_buffer(buffer);
-    }
-}
-
 GLuint gen_item_buffer(float x, float y, float z, float n, W w) {
     if (is_plant(w)) {
         return gen_plant_buffer(0, 0, 0, 0.5, w);
@@ -1826,7 +1813,32 @@ void render_item(Attrib *attrib) {
     glUniform3f(attrib->camera, 0, 0, 5);
     glUniform1i(attrib->sampler, 0);
     glUniform1f(attrib->timer, time_of_day());
-    draw_item(attrib, g->M[g->M_index][0]);
+    
+    float pos[3] = {0,0,0};
+    W w = g->M[g->M_index][0];
+    if (is_plant(w)) {
+        GLuint buffer = gen_plant_buffer(pos[0], pos[1], pos[2], 0.5, w);
+        draw_plant(attrib, buffer);
+        del_buffer(buffer);
+    }
+    else {
+        GLuint buffer = gen_cube_buffer(pos[0], pos[1], pos[2], 0.5, w);
+        draw_cube(attrib, buffer);
+        del_buffer(buffer);
+    }
+    pos[0] += 1.1;
+    pos[2] += 1.1;
+    w = g->M[g->M_index][1];
+    if (is_plant(w)) {
+        GLuint buffer = gen_plant_buffer(pos[0], pos[1], pos[2], 0.5, w);
+        draw_plant(attrib, buffer);
+        del_buffer(buffer);
+    }
+    else {
+        GLuint buffer = gen_cube_buffer(pos[0], pos[1], pos[2], 0.5, w);
+        draw_cube(attrib, buffer);
+        del_buffer(buffer);
+    }
 }
 
 void render_text(

@@ -53,6 +53,28 @@ terminal.
     make
     ./home
 
+### Controls
+
+- WASD to move forward, left, backward, right.
+- Left/Right Click to place different block types.
+- 0-9 to select different block types for Left/Right click.
+- Scroll Up/Down to cycle through the block types.
+- Control+Left/Right Click on a block to select it as the Left/Right block type.
+- R to remove a block.
+- C to cycle colors on a block, Shift+C to cycle backwards.
+- Space to jump.
+- Tab to toggle between walking and flying.
+- Left Alt to zoom.
+- O to show the scene in orthographic mode.
+- Arrow keys emulate mouse movement.
+
+- Currently some missing functionality:
+
+- Q,E to cycle through the block types.
+- ZXCVBN to move in exact directions along the XYZ axes.
+- O to observe players in the main view.
+- P to observe players in the picture-in-picture view.
+
 ### Multiplayer
 
 Borked.  Register for an account with the original Craft here:
@@ -77,29 +99,6 @@ the client.
 
     gcc -std=c99 -O3 -fPIC -shared -o world -I src -I deps/noise deps/noise/noise.c src/world.c
     python server.py [HOST [PORT]]
-
-### Controls
-
-### Controls
-
-- WASD to move forward, left, backward, right.
-- Left/Right Click to place different block types.
-- 0-9 to select different block types for Left/Right click.
-- Scroll Up/Down to cycle through the block types.
-- Control+Left/Right Click on a block to select it as the Left/Right block type.
-- R to remove a block.
-- Space to jump.
-- Tab to toggle between walking and flying.
-- Left shift to zoom.
-- F to show the scene in orthographic mode.
-- Arrow keys emulate mouse movement.
-
-- Currently some missing functionality:
-
-- Q,E to cycle through the block types.
-- ZXCVBN to move in exact directions along the XYZ axes.
-- O to observe players in the main view.
-- P to observe players in the picture-in-picture view.
 
 ### Chat Commands
 

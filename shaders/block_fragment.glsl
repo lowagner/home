@@ -20,6 +20,7 @@ void main() {
     vec3 color;
     bool cloud;
     float alpha = 1;
+    float value;
     if (fragment_glaze[0] == 0.99 && fragment_glaze[1] == 0.99 && fragment_glaze[2] == 1.0) {
         // water
         float sint = sin(20*pi*timer);
@@ -34,13 +35,12 @@ void main() {
             discard;
         }
         //alpha = 1;
+        if (color == vec3(1.0, 0.0, 1.0)) {
+            discard;
+        }
+        value = (fragment_glaze[0] + fragment_glaze[1] + fragment_glaze[2])/3.0;
+        color = (1.0-value)*fragment_glaze + value*color;
     }
-
-    if (color == vec3(1.0, 0.0, 1.0)) {
-        discard;
-    }
-    float value = (fragment_glaze[0] + fragment_glaze[1] + fragment_glaze[2])/3.0;
-    color = (1.0-value)*fragment_glaze + value*color;
 
     float df = cloud ? 1.0 - diffuse * 0.2 : diffuse;
     float ao = cloud ? 1.0 - (1.0 - fragment_ao) * 0.2 : fragment_ao;

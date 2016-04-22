@@ -2249,6 +2249,28 @@ void rotate_item(int dir, int control, int shift) {
     printf("need to rotate the object with w=%d\n",w.value);
 }
 
+void rotate_color(int shift, int control) {
+    State *s = &g->players->state;
+    int hx, hy, hz;
+    W w = hit_test(0, s->x, s->y, s->z, s->rx, s->ry, &hx, &hy, &hz);
+    if (w.value == 0)
+        return;
+    // check and see if it matches one the current mouse brush:
+    int match = -1;
+    if (w.value == g->M[g->M_index][0].value) {
+        match = 0;
+    } 
+    else if (w.value == g->M[g->M_index][1].value) {
+        match = 1;
+    }
+    // update color
+    w.color = (w.color + 1-2*shift)&127; // let 128-255 be reserved
+    set_block(hx, hy, hz, w);
+    // update mouse brush, if matching
+    if (match >= 0)
+        g->M[g->M_index][match] = w;
+}
+
 void on_key(GLFWwindow *window, int key, int scancode, int action, int mods) {
     int control = mods & (GLFW_MOD_CONTROL | GLFW_MOD_SUPER);
     int exclusive =
@@ -2338,6 +2360,9 @@ void on_key(GLFWwindow *window, int key, int scancode, int action, int mods) {
         }
         else if (key == CRAFT_KEY_OBSERVE_INSET) {
             g->observe2 = (g->observe2 + 1) % g->player_count;
+        }
+        else if (key == CRAFT_KEY_CHANGE_COLOR) {
+            rotate_color(mods & GLFW_MOD_SHIFT, control);
         }
     }
 }

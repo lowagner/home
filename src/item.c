@@ -57,10 +57,16 @@ const int plant_textures[256] = {
 };
 
 float color_palette[256][3] = {
+    // don't let anybody have the colors of C_WATER
     {1.0, 1.0, 1.0},
     {1.0, 0, 0},
+    {1.0, 0.7, 0},
+    {1.0, 1.0, 0},
     {0, 1.0, 0},
+    {0, 1.0, 1.0},
     {0, 0, 1.0},
+    {0.5, 0, 1.0},
+    {1.0, 0, 1.0},
     [C_WATER]={0.99, 0.99, 1.0},
 };
 

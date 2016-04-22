@@ -171,6 +171,12 @@ void biome1(int x, int z, int flag, world_func func, void *arg) {
         if (simplex3(x * 0.01, y * 0.01, z * 0.01, 4, 0.5, 2) > 0.5) {
             int i = simplex3(-x * 0.01, -y * 0.01, -z * 0.01, 4, 0.5, 2) * 10;
             func(x, y, z, (W) {.shape=S_CUBE*flag, .material=lookup[i%5], .color=0, .action=0}, arg);
+        } 
+        else if (y < 11) {
+            func(x, y, z, (W) {.shape=S_CUBE*flag, .material=M_WATER, .color=C_WATER, .action=A_WATER}, arg);
+        } 
+        else if (y == 11) {
+            func(x, 11, z, (W) {.shape=S_HALF_NY*flag, .material=M_WATER, .color=C_WATER, .action=A_WATER}, arg);
         }
     }
     if (SHOW_CLOUDS) {

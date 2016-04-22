@@ -52,6 +52,7 @@
 #define M_BLUE_FLOWER 23
 #define M_FLOWER_COUNT 6 
 #define M_WATER 255
+#define C_WATER 255
 
 #define A_CLOUD 127
 #define A_WATER 126

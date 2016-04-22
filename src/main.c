@@ -2646,7 +2646,7 @@ void init_M() {
     // TODO:  add a M file to the $(HOME)/.config directory...
     g->M_index = 1;
     g->M[0][0] = (W){.shape=S_CUBE, .material=M_CLOUD, .color=0, .action=A_CLOUD};
-    g->M[0][1] = (W){.shape=S_HALF_NY, .material=M_WATER, .color=255, .action=A_WATER};
+    g->M[0][1] = (W){.shape=S_HALF_NY, .material=M_WATER, .color=C_WATER, .action=A_WATER};
     g->M[1][0] = (W){.shape=S_CUBE, .material=M_GRASS, .color=0, .action=0};
     g->M[1][1] = (W){.shape=S_CUBE, .material=M_SAND, .color=0, .action=0};
     g->M[2][0] = (W){.shape=S_HALF_NY, .material=M_CEMENT, .color=0, .action=0};

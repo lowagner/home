@@ -283,6 +283,21 @@ GLuint gen_cube_buffer(float x, float y, float z, float n, W w) {
     return gen_faces(13, 6, data);
 }
 
+GLuint gen_half_ny_buffer(float x, float y, float z, float n, W w) {
+    GLfloat *data = malloc_faces(13, 6);
+    float ao[6][4] = {0};
+    float light[6][4] = {
+        {0.5, 0.5, 0.5, 0.5},
+        {0.5, 0.5, 0.5, 0.5},
+        {0.5, 0.5, 0.5, 0.5},
+        {0.5, 0.5, 0.5, 0.5},
+        {0.5, 0.5, 0.5, 0.5},
+        {0.5, 0.5, 0.5, 0.5}
+    };
+    make_half_ny(data, ao, light, 1, 1, 1, 1, 1, 1, x, y, z, n, w);
+    return gen_faces(13, 6, data);
+}
+
 GLuint gen_plant_buffer(float x, float y, float z, float n, W w) {
     GLfloat *data = malloc_faces(13, 4);
     float ao = 0;
@@ -985,6 +1000,53 @@ void light_fill(
     light_fill(opaque, light, x, y, z + 1, w, 0);
 }
 
+static inline int get_item_faces(int fnx, int fpx, int fpy, int fny, int fnz, int fpz, W w) {
+    // you can assume at least one of f1-6 are nonzero,
+    // and that shape is not S_CUBE
+    switch (w.shape) {
+        case S_PLANT:
+            return 4;
+        case S_HALF_NY:
+            return fnx + fpx + 1 + fny + fnz + fpz;
+    }
+    return 0; //fnx+fpx+fpy+fny+fnz+fpz;
+}
+
+static inline int draw_item_faces(float *data, float ao[6][4], float light[6][4],
+    int fnx, int fpx, int fpy, int fny, int fnz, int fpz,
+    int ex, int ey, int ez, float n, W ew)
+{
+    // you can assume at least one of f (p)ositive/(n)egative x/y/z are nonzero,
+    // and that shape is not S_CUBE
+    switch (ew.shape) {
+        case S_PLANT:
+        {
+            float min_ao = 1;
+            float max_light = 0;
+            for (int a = 0; a < 6; a++) {
+                for (int b = 0; b < 4; b++) {
+                    min_ao = MIN(min_ao, ao[a][b]);
+                    max_light = MAX(max_light, light[a][b]);
+                }
+            }
+            float rotation = simplex2(ex, ez, 4, 0.5, 2) * 360;
+            make_plant(
+                data, min_ao, max_light,
+                ex, ey, ez, n, ew, rotation);
+            return 4;
+        }
+        case S_HALF_NY:
+        {
+            make_half_ny(
+                data, ao, light,
+                fnx, fpx, fpy, fny, fnz, fpz,
+                ex, ey, ez, n, ew);
+            return fnx + fpx + 1 + fny + fnz + fpz;
+        }
+    }
+    return 0; //fnx+fpx+fpy+fny+fnz+fpz;
+}
+
 void compute_chunk(WorkerItem *item) {
     char *opaque = (char *)calloc(XZ_SIZE * XZ_SIZE * Y_SIZE, sizeof(char));
     char *light = (char *)calloc(XZ_SIZE * XZ_SIZE * Y_SIZE, sizeof(char));
@@ -1077,7 +1139,7 @@ void compute_chunk(WorkerItem *item) {
             continue;
         }
         if (ew.shape != S_CUBE) {
-            total = number_faces(ew, f1, f2, f3, f4, f5, f6);
+            total = get_item_faces(f1, f2, f3, f4, f5, f6, ew);
             if (total == 0)
                 continue;
         }
@@ -1131,28 +1193,19 @@ void compute_chunk(WorkerItem *item) {
         float ao[6][4];
         float light[6][4];
         occlusion(neighbors, lights, shades, ao, light);
-        if (is_plant(ew)) {
-            total = 4;
-            float min_ao = 1;
-            float max_light = 0;
-            for (int a = 0; a < 6; a++) {
-                for (int b = 0; b < 4; b++) {
-                    min_ao = MIN(min_ao, ao[a][b]);
-                    max_light = MAX(max_light, light[a][b]);
-                }
-            }
-            float rotation = simplex2(ex, ez, 4, 0.5, 2) * 360;
-            make_plant(
-                data + offset, min_ao, max_light,
-                ex, ey, ez, 0.5, ew, rotation);
-        }
-        else {
+        if (ew.shape == S_CUBE) {
             make_cube(
                 data + offset, ao, light,
                 f1, f2, f3, f4, f5, f6,
                 ex, ey, ez, 0.5, ew);
+            offset += total * (13*6); // 6 vertices per square face (2 triangles, 3 vertices each)
         }
-        offset += total * (13*6); // 6 vertices per square face (3 triangles, 2 faces)
+        else {
+            offset += draw_item_faces(
+                data + offset, ao, light,
+                f1, f2, f3, f4, f5, f6,
+                ex, ey, ez, 0.5, ew) * (13*6);
+        }
     } END_MAP_FOR_EACH;
 
     free(opaque);
@@ -1797,16 +1850,35 @@ void render_crosshairs(Attrib *attrib) {
     glDisable(GL_COLOR_LOGIC_OP);
 }
 
-GLuint gen_item_buffer(float x, float y, float z, float n, W w) {
-    if (is_plant(w)) {
-        return gen_plant_buffer(0, 0, 0, 0.5, w);
-    }
-    else {
-        return gen_cube_buffer(0, 0, 0, 0.5, w);
+void draw_item(Attrib *attrib, float *pos, W w) {
+    // draw item w to HUD at position pos
+    int shape = w.shape < 0 ? -w.shape : w.shape;
+    switch (shape) {
+        case S_CUBE:
+        {
+            GLuint buffer = gen_cube_buffer(pos[0], pos[1], pos[2], 0.5, w);
+            draw_cube(attrib, buffer);
+            del_buffer(buffer);
+            break;
+        }
+        case S_PLANT:
+        {
+            GLuint buffer = gen_plant_buffer(pos[0], pos[1], pos[2], 0.5, w);
+            draw_plant(attrib, buffer);
+            del_buffer(buffer);
+            break;
+        }
+        case S_HALF_NY:
+        {
+            GLuint buffer = gen_half_ny_buffer(pos[0], pos[1], pos[2], 0.5, w);
+            draw_triangles_3d_ao(attrib, buffer, 6*6);
+            del_buffer(buffer);
+            break;
+        }
     }
 }
 
-void render_item(Attrib *attrib) {
+void render_mouse_items(Attrib *attrib) {
     float matrix[16];
     set_matrix_item(matrix, g->width, g->height, g->scale);
     glUseProgram(attrib->program);
@@ -1816,30 +1888,9 @@ void render_item(Attrib *attrib) {
     glUniform1f(attrib->timer, time_of_day());
     
     float pos[3] = {0,0,0};
-    W w = g->M[g->M_index][0];
-    if (is_plant(w)) {
-        GLuint buffer = gen_plant_buffer(pos[0], pos[1], pos[2], 0.5, w);
-        draw_plant(attrib, buffer);
-        del_buffer(buffer);
-    }
-    else {
-        GLuint buffer = gen_cube_buffer(pos[0], pos[1], pos[2], 0.5, w);
-        draw_cube(attrib, buffer);
-        del_buffer(buffer);
-    }
-    pos[0] += 1.1;
-    pos[2] += 1.1;
-    w = g->M[g->M_index][1];
-    if (is_plant(w)) {
-        GLuint buffer = gen_plant_buffer(pos[0], pos[1], pos[2], 0.5, w);
-        draw_plant(attrib, buffer);
-        del_buffer(buffer);
-    }
-    else {
-        GLuint buffer = gen_cube_buffer(pos[0], pos[1], pos[2], 0.5, w);
-        draw_cube(attrib, buffer);
-        del_buffer(buffer);
-    }
+    draw_item(attrib, pos, g->M[g->M_index][0]);
+    pos[0] = pos[2] = 1.1; 
+    draw_item(attrib, pos, g->M[g->M_index][1]);
 }
 
 void render_text(
@@ -2691,10 +2742,10 @@ void init_M() {
     g->M[0][1] = (W){.shape=S_HALF_NY, .material=M_WATER, .color=C_WATER, .action=A_WATER};
     g->M[1][0] = (W){.shape=S_CUBE, .material=M_GRASS, .color=0, .action=0};
     g->M[1][1] = (W){.shape=S_CUBE, .material=M_SAND, .color=0, .action=0};
-    g->M[2][0] = (W){.shape=S_HALF_NY, .material=M_CEMENT, .color=0, .action=0};
-    g->M[2][1] = (W){.shape=S_HALF_PY, .material=M_CEMENT, .color=0, .action=0};
-    g->M[3][0] = (W){.shape=S_HALF_PX, .material=M_BRICK, .color=0, .action=0};
-    g->M[3][1] = (W){.shape=S_CENTER_X, .material=M_GLASS, .color=0, .action=0};
+    g->M[2][0] = (W){.shape=S_CUBE, .material=M_CEMENT, .color=0, .action=0};
+    g->M[2][1] = (W){.shape=S_CUBE, .material=M_CEMENT, .color=0, .action=0};
+    g->M[3][0] = (W){.shape=S_CUBE, .material=M_BRICK, .color=0, .action=0};
+    g->M[3][1] = (W){.shape=S_CUBE, .material=M_GLASS, .color=0, .action=0};
 }
 
 int main(int argc, char **argv) {
@@ -2974,7 +3025,7 @@ int main(int argc, char **argv) {
                 render_crosshairs(&line_attrib);
             }
             if (SHOW_ITEM) {
-                render_item(&block_attrib);
+                render_mouse_items(&block_attrib);
             }
 
             // RENDER TEXT //

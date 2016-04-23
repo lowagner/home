@@ -81,6 +81,4 @@ int is_destructable(W w);
 
 extern float color_palette[256][3];
 
-int number_faces(W w, int f1, int f2, int f3, int f4, int f5, int f6);
-
 #endif

@@ -34,4 +34,9 @@ void make_character_3d(
 
 void make_sphere(float *data, float r, int detail);
 
+void make_half_ny(
+    float *data, float ao[6][4], float light[6][4],
+    int left, int right, int top, int bottom, int front, int back,
+    float x, float y, float z, float n, W w);
+
 #endif

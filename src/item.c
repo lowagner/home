@@ -112,13 +112,3 @@ int is_destructable(W w) {
     return 1;
 }
 
-
-int number_faces(W w, int f1, int f2, int f3, int f4, int f5, int f6) {
-    // you can assume at least one of f1-6 are nonzero.
-    int shape = w.shape < 0 ? -w.shape : w.shape;
-    switch (shape) {
-        case S_PLANT:
-            return 4;
-    }
-    return f1+f2+f3+f4+f5+f6;
-}

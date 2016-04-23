@@ -84,6 +84,41 @@ void create_world1(int p, int q, world_func func, void *arg) {
 }
 
 void biome0(int x, int z, int flag, world_func func, void *arg) {
+    int lo = simplex2(x * 0.01, z * 0.01, 4, 0.5, 2) * 2 + 10;
+    int hi = simplex2(-x * 0.01, -z * 0.01, 4, 0.5, 2) * 2 + 12;
+    for (int y = 0; y < lo; y++) {
+        func(x, y, z, (W) {.shape=S_CUBE*flag, .material=M_DIRT, .color=0, .action=0}, arg);
+    }
+    for (int y = lo; y < hi; y++) {
+        func(x, y, z, (W) {.shape=S_CUBE*flag, .material=M_GRASS, .color=0, .action=0}, arg);
+    }
+    float f = simplex2(-x * 0.1, z * 0.1, 4, 0.8, 2);
+    if (f < 0.2) {
+        uint8_t lookup[] = {M_BRICK, M_YELLOW_FLOWER, 
+            M_RED_FLOWER, M_PURPLE_FLOWER, M_SUN_FLOWER, M_WHITE_FLOWER, M_BLUE_FLOWER};
+        int i = simplex3(x * 0.5, hi * 0.5, z * 0.5, 3, 2.5, 5) * sizeof(lookup);
+        if (i == 0)  {
+            func(x, hi, z, (W) {.shape=S_CUBE*flag, .material=M_BRICK, .color=0, .action=0}, arg);
+            i = 1+simplex3(-x * 0.001, -hi * 0.001, -z * 0.001, 5, 0.5, 2) * (sizeof(lookup)-1);
+            func(x, hi+1, z, (W) {.shape=S_PLANT*flag, .material=lookup[i], .color=0, .action=0}, arg);
+        } else
+            func(x, hi, z, (W) {.shape=S_PLANT*flag, .material=lookup[i], .color=0, .action=0}, arg);
+    } else if (f < 0.3) {
+        func(x, hi, z, (W) {.shape=S_PLANT*flag, .material=M_PLANT_GRASS, .color=0, .action=0}, arg);
+    }
+    if (SHOW_CLOUDS) {
+        for (int y = 60; y < 72; y++) {
+            if (simplex3(
+                x * 0.01, y * 0.1, z * 0.01, 8, 0.5, 2) > 0.65)
+            {
+                func(x, y, z, 
+                    (W) {.shape=S_CUBE*flag, .material=M_CLOUD, .color=0, .action=A_CLOUD}, arg);
+            }
+        }
+    }
+}
+
+void biome1(int x, int z, int flag, world_func func, void *arg) {
     float f = simplex2(x * 0.01, z * 0.01, 4, 0.5, 2);
     float g = simplex2(-x * 0.01, -z * 0.01, 2, 0.9, 2);
     int mh = g * 32 + 16;
@@ -160,7 +195,7 @@ void biome0(int x, int z, int flag, world_func func, void *arg) {
     }
 }
 
-void biome1(int x, int z, int flag, world_func func, void *arg) {
+void biome2(int x, int z, int flag, world_func func, void *arg) {
     int lo = simplex2(x * 0.01, z * 0.01, 4, 0.5, 2) * 8 + 8;
     int hi = simplex2(-x * 0.01, -z * 0.01, 4, 0.5, 2) * 32 + 32;
     uint8_t lookup[] = {M_STONE, M_CEMENT, M_COBBLE, M_LIGHT_STONE, M_DARK_STONE};
@@ -190,6 +225,25 @@ void biome1(int x, int z, int flag, world_func func, void *arg) {
     }
 }
 
+void biome3(int x, int z, int flag, world_func func, void *arg) {
+    int lo = simplex2(x * 0.01, z * 0.01, 4, 0.5, 2) * 20 + 10;
+    int hi = simplex2(-x * 0.01, -z * 0.01, 4, 0.5, 2) * 40 + 28;
+    for (int y = 0; y < lo; y++) {
+        func(x, y, z, (W) {.shape=S_CUBE*flag, .material=M_STONE, .color=0, .action=0}, arg);
+    }
+    int i;
+    uint8_t lookup[4] = {M_PLANK, M_WOOD, M_CHEST, M_SNOW};
+    for (int y = lo; y < hi; y++) {
+        i = simplex3(-x * 0.01, -y * 0.01, -z * 0.01, 3, 0.5, 2) * 4;
+        func(x, y, z, (W) {.shape=S_CUBE*flag, .material=lookup[i], .color=0, .action=0}, arg);
+    }
+    if (i < 3 && simplex3(-x*0.005, -hi*0.005, -z*0.005, 3, 0.5, 2) > 0.55) {
+        // add some lichen if the top isn't snow
+        int c = simplex3(-x*0.1, -hi*0.1, -z*0.1, 3, 0.5, 2) * 2; 
+        func(x, hi, z, (W) {.shape=S_CUBE*flag, .material=M_LEAVES, .color=c, .action=0}, arg);
+    }
+}
+
 void create_world2(int p, int q, world_func func, void *arg) {
     for (int dx = -CHUNK_PAD; dx < CHUNK_SIZE + CHUNK_PAD; dx++) {
         for (int dz = -CHUNK_PAD; dz < CHUNK_SIZE + CHUNK_PAD; dz++) {
@@ -199,9 +253,11 @@ void create_world2(int p, int q, world_func func, void *arg) {
             }
             int x = p * CHUNK_SIZE + dx;
             int z = q * CHUNK_SIZE + dz;
-            int i = simplex2(-x * 0.001, -z * 0.001, 8, 0.5, 2) * 2;
-            if (i == 0) biome0(x, z, flag, func, arg);
-            else biome1(x, z, flag, func, arg);
+            float f = simplex2(-x * 0.001, -z * 0.001, 8, 0.15, 2);
+            if (f < 0.25) biome0(x, z, flag, func, arg);
+            else if (f < 0.45) biome1(x, z, flag, func, arg);
+            else if (f < 0.7) biome2(x, z, flag, func, arg);
+            else biome3(x, z, flag, func, arg);
         }
     }
 }

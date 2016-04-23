@@ -154,31 +154,22 @@ void biome1(int x, int z, int flag, world_func func, void *arg) {
             }
         }
         // trees
-        if (ok) {
-            int dx = x%CHUNK_SIZE;
-            int dz = z%CHUNK_SIZE;
-            if (dx - 4 < 0 || dz - 4 < 0 ||
-                dx + 4 >= CHUNK_SIZE || dz + 4 >= CHUNK_SIZE) 
-            {
-                ok = 0;
-            }
-            else if (simplex2(x, z, 6, 0.5, 2) > 0.84) {
-                for (int y = h + 3; y < h + 8; y++) {
-                    for (int ox = -3; ox <= 3; ox++) {
-                        for (int oz = -3; oz <= 3; oz++) {
-                            int d = (ox * ox) + (oz * oz) +
-                                (y - (h + 4)) * (y - (h + 4));
-                            if (d < 11) {
-                                func(x + ox, y, z + oz, 
-                                    (W) {.shape=S_CUBE, .material=M_LEAVES, .color=0, .action=0}, arg);
-                            }
+        if (ok && simplex2(x, z, 6, 1.5, 2) > 0.84) {
+            for (int y = h + 3; y < h + 8; y++) {
+                for (int ox = -3; ox <= 3; ox++) {
+                    for (int oz = -3; oz <= 3; oz++) {
+                        int d = (ox * ox) + (oz * oz) +
+                            (y - (h + 4)) * (y - (h + 4));
+                        if (d < 11) {
+                            func(x + ox, y, z + oz, 
+                                (W) {.shape=flag*S_CUBE, .material=M_LEAVES, .color=0, .action=0}, arg);
                         }
                     }
                 }
-                for (int y = h; y < h + 7; y++) {
-                    func(x, y, z,
-                        (W) {.shape=S_CUBE, .material=M_WOOD, .color=0, .action=0}, arg);
-                }
+            }
+            for (int y = h; y < h + 7; y++) {
+                func(x, y, z,
+                    (W) {.shape=flag*S_CUBE, .material=M_WOOD, .color=0, .action=0}, arg);
             }
         }
     }

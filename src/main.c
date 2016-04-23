@@ -137,8 +137,9 @@ typedef struct {
     int observe2;
     int flying;
     int debug;
-    W M[10][2];
+    W M[10][2]; // mouse block brushes
     int M_index;
+    int shift, control;
     float remove_blocks;
     int scale;
     int ortho;
@@ -2217,28 +2218,27 @@ void on_remove_block() {
     }
 }
 
-void on_click(int mouse_button) {
+void on_click(int mouse_button, int control) {
     State *s = &g->players->state;
     int hx, hy, hz;
-    W hw = hit_test(1, s->x, s->y, s->z, s->rx, s->ry, &hx, &hy, &hz);
-    if (hy > 0 && hy < 256 && is_obstacle(hw)) {
-        if (!player_intersects_block(2, s->x, s->y, s->z, hx, hy, hz)) {
-            set_block(hx, hy, hz, g->M[g->M_index][mouse_button]);
-            record_block(hx, hy, hz, g->M[g->M_index][mouse_button]);
+    if (control) { // control click, put block into mouse entry
+        W w = hit_test(0, s->x, s->y, s->z, s->rx, s->ry, &hx, &hy, &hz);
+        if (w.value) {
+            g->M[g->M_index][mouse_button] = w;
+        }
+    }
+    else { // regular click, place block:
+        W hw = hit_test(1, s->x, s->y, s->z, s->rx, s->ry, &hx, &hy, &hz);
+        if (hy > 0 && hy < 256 && is_obstacle(hw)) {
+            if (!player_intersects_block(2, s->x, s->y, s->z, hx, hy, hz)) {
+                set_block(hx, hy, hz, g->M[g->M_index][mouse_button]);
+                record_block(hx, hy, hz, g->M[g->M_index][mouse_button]);
+            }
         }
     }
 }
 
-void on_control_click(int mouse_button) {
-    State *s = &g->players->state;
-    int hx, hy, hz;
-    W w = hit_test(0, s->x, s->y, s->z, s->rx, s->ry, &hx, &hy, &hz);
-    if (w.value) {
-        g->M[g->M_index][mouse_button] = w;
-    }
-}
-
-void rotate_item(int dir, int control, int shift) {
+void rotate_item(int dir, int shift, int control) {
     State *s = &g->players->state;
     int hx, hy, hz;
     //g->debug = 1;
@@ -2272,41 +2272,23 @@ void rotate_color(int shift, int control) {
 }
 
 void on_key(GLFWwindow *window, int key, int scancode, int action, int mods) {
-    int control = mods & (GLFW_MOD_CONTROL | GLFW_MOD_SUPER);
     int exclusive =
         glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED;
-    if (action == GLFW_RELEASE) {
-        if (!g->typing && key == CRAFT_KEY_REMOVE_BLOCK) {
-            g->remove_blocks = 0;
-        }
-        return;
-    }
-    if (key == GLFW_KEY_BACKSPACE) {
-        if (g->typing) {
+    if (g->typing) {
+        if (key == GLFW_KEY_BACKSPACE) {
             int n = strlen(g->typing_buffer);
             if (n > 0) {
                 g->typing_buffer[n - 1] = '\0';
             }
         }
-        return;
-    }
-    if (action != GLFW_PRESS) {
-        return;
-    }
-    if (key == GLFW_KEY_ESCAPE) {
-        if (g->typing) {
+        else if (key == GLFW_KEY_ESCAPE) {
             g->typing = 0;
         }
-        else if (exclusive) {
-            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-        }
-    }
-    if (key == GLFW_KEY_ENTER) {
-        if (g->typing) {
+        else if (key == GLFW_KEY_ENTER) {
             if (mods & GLFW_MOD_SHIFT) {
                 int n = strlen(g->typing_buffer);
                 if (n < MAX_TEXT_LENGTH - 1) {
-                    g->typing_buffer[n] = '\r';
+                    g->typing_buffer[n] = '\n';
                     g->typing_buffer[n + 1] = '\0';
                 }
             }
@@ -2327,43 +2309,78 @@ void on_key(GLFWwindow *window, int key, int scancode, int action, int mods) {
                 }
             }
         }
-    }
-    if (control && key == 'V') {
-        const char *buffer = glfwGetClipboardString(window);
-        if (g->typing) {
+        else if (key == 'V' && (mods & GLFW_MOD_CONTROL)) {
+            const char *buffer = glfwGetClipboardString(window);
             g->suppress_char = 1;
             strncat(g->typing_buffer, buffer,
                 MAX_TEXT_LENGTH - strlen(g->typing_buffer) - 1);
         }
-        else {
-            parse_command(buffer, 0);
-        }
+        return;
     }
-    if (!g->typing) {
+    if (action == GLFW_RELEASE) {
         if (key == CRAFT_KEY_REMOVE_BLOCK) {
+            g->remove_blocks = 0;
+        } 
+        else switch (key) {
+            case GLFW_KEY_LEFT_SHIFT:
+            case GLFW_KEY_RIGHT_SHIFT:
+                g->shift = 0;
+                break;
+            case GLFW_KEY_LEFT_CONTROL:
+            case GLFW_KEY_RIGHT_CONTROL:
+                g->control = 0;
+                break;
+        }
+        return;
+    }
+    if (action != GLFW_PRESS) {
+        return;
+    }
+    switch (key) {
+        case GLFW_KEY_LEFT_SHIFT:
+        case GLFW_KEY_RIGHT_SHIFT:
+            g->shift = 1;
+            return;
+        case GLFW_KEY_LEFT_CONTROL:
+        case GLFW_KEY_RIGHT_CONTROL:
+            g->control = 1;
+            return;
+        case GLFW_KEY_ESCAPE:
+            if (exclusive) {
+                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            }
+            return;
+        case 'V':
+            if (mods & GLFW_MOD_CONTROL) {
+                const char *buffer = glfwGetClipboardString(window);
+                parse_command(buffer, 0);
+            }
+            return;
+        case CRAFT_KEY_REMOVE_BLOCK:
             g->remove_blocks = 0.0001;
-        }
-        if (key == CRAFT_KEY_FLY) {
+            return;
+        case CRAFT_KEY_FLY:
             g->flying = !g->flying;
-        }
-        else if (key >= '0' && key <= '9') {
-            g->M_index = key-'0';
-        }
-        else if (key == CRAFT_KEY_ITEM_NEXT) {
-            rotate_item(+1, control, mods & GLFW_MOD_SHIFT);
-        }
-        else if (key == CRAFT_KEY_ITEM_PREV) {
-            rotate_item(-1, control, mods & GLFW_MOD_SHIFT);
-        }
-        else if (key == CRAFT_KEY_OBSERVE) {
+            return;
+        case CRAFT_KEY_ITEM_NEXT:
+            rotate_item(+1, mods & GLFW_MOD_SHIFT, mods & GLFW_MOD_CONTROL);
+            return;
+        case CRAFT_KEY_ITEM_PREV:
+            rotate_item(-1, mods & GLFW_MOD_SHIFT, mods & GLFW_MOD_CONTROL);
+            return;
+        case CRAFT_KEY_OBSERVE:
             g->observe1 = (g->observe1 + 1) % g->player_count;
-        }
-        else if (key == CRAFT_KEY_OBSERVE_INSET) {
+            return;
+        case CRAFT_KEY_OBSERVE_INSET:
             g->observe2 = (g->observe2 + 1) % g->player_count;
-        }
-        else if (key == CRAFT_KEY_CHANGE_COLOR) {
-            rotate_color(mods & GLFW_MOD_SHIFT, control);
-        }
+            return;
+        case CRAFT_KEY_CHANGE_COLOR:
+            rotate_color(mods & GLFW_MOD_SHIFT, mods & GLFW_MOD_CONTROL);
+            return;
+    }
+    if (key >= '0' && key <= '9') {
+        g->M_index = key-'0';
+        return;
     }
 }
 
@@ -2416,7 +2433,6 @@ void on_scroll(GLFWwindow *window, double xdelta, double ydelta) {
 }
 
 void on_mouse_button(GLFWwindow *window, int button, int action, int mods) {
-    int control = mods & (GLFW_MOD_CONTROL | GLFW_MOD_SUPER);
     if (action != GLFW_PRESS) {
         return;
     }
@@ -2428,16 +2444,10 @@ void on_mouse_button(GLFWwindow *window, int button, int action, int mods) {
         }
     } else {
         if (button == GLFW_MOUSE_BUTTON_LEFT) {
-            if (control)
-                on_control_click(0);
-            else
-                on_click(0);
+            on_click(0, mods & GLFW_MOD_CONTROL);
         } 
         else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
-            if (control)
-                on_control_click(1);
-            else
-                on_click(1);
+            on_click(1, mods & GLFW_MOD_CONTROL);
         }
         else if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
             // maybe paste
@@ -2498,6 +2508,7 @@ void handle_movement(double dt) {
     State *s = &g->players->state;
     int sz = 0;
     int sx = 0;
+    //int in_water = 
     if (!g->typing) {
         float m = dt * 1.5;
         g->ortho = glfwGetKey(g->window, CRAFT_KEY_ORTHO) ? 64 : 0;
@@ -2519,11 +2530,17 @@ void handle_movement(double dt) {
                 vy = 1;
             }
             else if (dy == 0) {
-                dy = 8;
+                dy = 8 + (6-2*g->control)*g->shift;
             }
         }
     }
-    float speed = g->flying ? 22 : 8;
+    float speed = g->flying ? 32 : 8;
+    if (g->shift) {
+        speed += 18;
+    }
+    if (g->control) {
+        speed /= 2;
+    }
     int estimate = roundf(sqrtf(
         powf(vx * speed, 2) +
         powf(vy * speed + ABS(dy) * 2, 2) +

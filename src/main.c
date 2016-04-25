@@ -429,16 +429,8 @@ void draw_sign(Attrib *attrib, GLuint buffer, int length) {
     glDisable(GL_POLYGON_OFFSET_FILL);
 }
 
-void draw_cube(Attrib *attrib, GLuint buffer) {
-    draw_triangles_3d_ao(attrib, buffer, 36);
-}
-
-void draw_plant(Attrib *attrib, GLuint buffer) {
-    draw_triangles_3d_ao(attrib, buffer, 24);
-}
-
 void draw_player(Attrib *attrib, Player *player) {
-    draw_cube(attrib, player->buffer);
+    draw_triangles_3d_ao(attrib, player->buffer, 36);
 }
 
 Player *find_player(int id) {
@@ -998,7 +990,7 @@ void light_fill(
     light_fill(opaque, light, x, y, z + 1, w, 0);
 }
 
-static inline int get_item_faces(int fnx, int fpx, int fpy, int fny, int fnz, int fpz, W w) {
+static inline int count_item_faces(int fnx, int fpx, int fpy, int fny, int fnz, int fpz, W w) {
     // you can assume at least one of f1-6 are nonzero,
     // and that shape is not S_CUBE
     switch (w.shape) {
@@ -1006,11 +998,13 @@ static inline int get_item_faces(int fnx, int fpx, int fpy, int fny, int fnz, in
             return 4;
         case S_HALF_NY:
             return fnx + fpx + 1 + fny + fnz + fpz;
+        case S_HALF_PY:
+            return fnx + fpx + fpy + 1 + fnz + fpz;
     }
     return 0; //fnx+fpx+fpy+fny+fnz+fpz;
 }
 
-static inline int draw_item_faces(float *data, float ao[6][4], float light[6][4],
+static inline int add_item_faces(float *data, float ao[6][4], float light[6][4],
     int fnx, int fpx, int fpy, int fny, int fnz, int fpz,
     int ex, int ey, int ez, float n, W ew)
 {
@@ -1040,6 +1034,14 @@ static inline int draw_item_faces(float *data, float ao[6][4], float light[6][4]
                 fnx, fpx, 1, fny, fnz, fpz,
                 ex, ey, ez, n, ew);
             return fnx + fpx + 1 + fny + fnz + fpz;
+        }
+        case S_HALF_PY:
+        {
+            make_half_ny(
+                data, ao, light,
+                fnx, fpx, fpy, 1, fnz, fpz,
+                ex, ey+0.5, ez, n, ew);
+            return fnx + fpx + fpy + 1 + fnz + fpz;
         }
     }
     return 0; //fnx+fpx+fpy+fny+fnz+fpz;
@@ -1137,7 +1139,7 @@ void compute_chunk(WorkerItem *item) {
             continue;
         }
         if (ew.shape != S_CUBE) {
-            total = get_item_faces(f1, f2, f3, f4, f5, f6, ew);
+            total = count_item_faces(f1, f2, f3, f4, f5, f6, ew);
             if (total == 0)
                 continue;
         }
@@ -1199,7 +1201,7 @@ void compute_chunk(WorkerItem *item) {
             offset += total * (13*6); // 6 vertices per square face (2 triangles, 3 vertices each)
         }
         else {
-            offset += draw_item_faces(
+            offset += add_item_faces(
                 data + offset, ao, light,
                 f1, f2, f3, f4, f5, f6,
                 ex, ey, ez, 0.5, ew) * (13*6);
@@ -1850,30 +1852,35 @@ void render_crosshairs(Attrib *attrib) {
 
 void draw_item(Attrib *attrib, float *pos, W w) {
     // draw item w to HUD at position pos
-    int shape = w.shape < 0 ? -w.shape : w.shape;
-    switch (shape) {
-        case S_CUBE:
-        {
-            GLuint buffer = gen_cube_buffer(pos[0], pos[1], pos[2], 0.5, w);
-            draw_cube(attrib, buffer);
-            del_buffer(buffer);
-            break;
-        }
-        case S_PLANT:
-        {
-            GLuint buffer = gen_plant_buffer(pos[0], pos[1], pos[2], 0.5, w);
-            draw_plant(attrib, buffer);
-            del_buffer(buffer);
-            break;
-        }
-        case S_HALF_NY:
-        {
-            GLuint buffer = gen_half_ny_buffer(pos[0], pos[1], pos[2], 0.5, w);
-            draw_triangles_3d_ao(attrib, buffer, 6*6);
-            del_buffer(buffer);
-            break;
-        }
+    if (w.shape < 0)
+        return;
+    int faces = 6;
+    if (w.shape != S_CUBE) {
+        faces = count_item_faces(1, 1, 1, 1, 1, 1, w);
     }
+    
+    GLfloat *data = malloc_faces(13, faces);
+    float ao[6][4] = {0};
+    float light[6][4] = {
+        {0.5, 0.5, 0.5, 0.5},
+        {0.5, 0.5, 0.5, 0.5},
+        {0.5, 0.5, 0.5, 0.5},
+        {0.5, 0.5, 0.5, 0.5},
+        {0.5, 0.5, 0.5, 0.5},
+        {0.5, 0.5, 0.5, 0.5}
+    };
+
+    if (w.shape == S_CUBE) {
+        make_cube(
+            data, ao, light,
+            1, 1, 1, 1, 1, 1,
+            pos[0], pos[1], pos[2], 0.5, w);
+    }
+    else
+        add_item_faces(data, ao, light, 1, 1, 1, 1, 1, 1, pos[0], pos[1], pos[2], 0.5, w);
+    GLuint buffer = gen_faces(13, faces, data); // moves data into gpu, frees data
+    draw_triangles_3d_ao(attrib, buffer, 6*faces); 
+    del_buffer(buffer); // free gpu resources
 }
 
 void render_mouse_items(Attrib *attrib) {
@@ -2592,9 +2599,12 @@ void handle_movement(double dt) {
             }
         }
     }
-    float speed = g->flying ? 32 : 8;
+    float speed;
     if (g->shift) {
-        speed += 18;
+        speed = g->flying ? 62 : 28;
+    }
+    else {
+        speed = g->flying ? 32 : 8;
     }
     if (g->control) {
         speed /= 2;
@@ -2745,14 +2755,17 @@ void reset_model() {
 void init_M() {
     // TODO:  add a M file to the $(HOME)/.config directory...
     g->M_index = 1;
-    g->M[0][0] = (W){.shape=S_CUBE, .material=M_CLOUD, .color=0, .action=A_CLOUD};
-    g->M[0][1] = (W){.shape=S_HALF_NY, .material=M_WATER, .color=C_WATER, .action=A_WATER};
-    g->M[1][0] = (W){.shape=S_CUBE, .material=M_GRASS, .color=0, .action=0};
-    g->M[1][1] = (W){.shape=S_CUBE, .material=M_SAND, .color=0, .action=0};
-    g->M[2][0] = (W){.shape=S_CUBE, .material=M_CEMENT, .color=0, .action=0};
-    g->M[2][1] = (W){.shape=S_CUBE, .material=M_CEMENT, .color=0, .action=0};
-    g->M[3][0] = (W){.shape=S_CUBE, .material=M_BRICK, .color=0, .action=0};
-    g->M[3][1] = (W){.shape=S_CUBE, .material=M_GLASS, .color=0, .action=0};
+    int index = 0;
+    g->M[index  ][0] = (W){.shape=S_CUBE, .material=M_CLOUD, .color=0, .action=A_CLOUD};
+    g->M[index  ][1] = (W){.shape=S_HALF_NY, .material=M_WATER, .color=C_WATER, .action=A_WATER};
+    g->M[++index][0] = (W){.shape=S_CUBE, .material=M_GRASS, .color=0, .action=0};
+    g->M[index  ][1] = (W){.shape=S_CUBE, .material=M_SAND, .color=0, .action=0};
+    g->M[++index][0] = (W){.shape=S_HALF_NY, .material=M_LIGHT_STONE, .color=0, .action=0};
+    g->M[index  ][1] = (W){.shape=S_HALF_PY, .material=M_DARK_STONE, .color=0, .action=0};
+    g->M[++index][0] = (W){.shape=S_CUBE, .material=M_BRICK, .color=0, .action=0};
+    g->M[index  ][1] = (W){.shape=S_CUBE, .material=M_PLANK, .color=0, .action=0};
+    g->M[++index][0] = (W){.shape=S_CUBE, .material=M_CEMENT, .color=0, .action=0};
+    g->M[index  ][1] = (W){.shape=S_CUBE, .material=M_GLASS, .color=0, .action=0};
 }
 
 int main(int argc, char **argv) {

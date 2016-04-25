@@ -2,6 +2,14 @@
 #define _item_h_
 
 #define EMPTY 0
+// directions
+#define D_NX 1
+#define D_PX 2
+#define D_PY 4
+#define D_NY 8
+#define D_NZ 16
+#define D_PZ 32
+#define D_ANY 63
 
 // shapes:
 // simple shapes
@@ -75,7 +83,7 @@ extern const int block_textures[256][6];
 extern const int plant_textures[256];
 
 int is_plant(W w);
-int is_obstacle(W w);
+int is_obstacle(W w, int direction);
 int is_transparent(W w);
 int is_destructable(W w);
 

@@ -79,12 +79,14 @@ int is_plant(W w) {
     return 0;
 }
 
-int is_obstacle(W w) {
-    if (is_plant(w)) {
+int is_obstacle(W w, int dir) {
+    if (w.value == 0 || is_plant(w) || w.material == M_WATER) 
+        return 0;
+    if (w.material == M_CLOUD) {
+        if (dir & D_PY)
+            return 1;
         return 0;
     }
-    if (w.value == 0 || w.material == M_WATER) // || (w.color == M_CLOUD)) // allow/do not allow walking on clouds
-        return 0;
     return 1;
 }
 

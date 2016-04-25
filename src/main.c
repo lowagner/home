@@ -139,6 +139,7 @@ typedef struct {
     int debug;
     W M[10][2]; // mouse block brushes
     int M_index;
+    int M_last_pressed;
     int shift, control;
     float remove_blocks;
     int scale;
@@ -614,7 +615,7 @@ int chunk_visible(float planes[6][4], int p, int q, int miny, int maxy) {
     return 1;
 }
 
-int highest_block(float x, float z) {
+int highest_land(float x, float z) {
     int result = -1;
     int nx = roundf(x);
     int nz = roundf(z);
@@ -624,7 +625,7 @@ int highest_block(float x, float z) {
     if (chunk) {
         Map *map = &chunk->map;
         MAP_FOR_EACH(map, ex, ey, ez, ew) {
-            if (is_obstacle(ew) && ex == nx && ez == nz) {
+            if (is_obstacle(ew, 0) && ex == nx && ez == nz) {
                 result = MAX(result, ey);
             }
         } END_MAP_FOR_EACH;
@@ -708,7 +709,7 @@ W hit_test(
 int hit_test_face(Player *player, int *x, int *y, int *z, int *face) {
     State *s = &player->state;
     W w = hit_test(0, s->x, s->y, s->z, s->rx, s->ry, x, y, z);
-    if (is_obstacle(w)) {
+    if (is_obstacle(w, 0)) {
         int hx, hy, hz;
         hit_test(1, s->x, s->y, s->z, s->rx, s->ry, &hx, &hy, &hz);
         int dx = hx - *x;
@@ -755,27 +756,24 @@ int collide(int height, float *x, float *y, float *z) {
     float pz = *z - nz;
     float pad = 0.25;
     for (int dy = 0; dy < height; dy++) {
-        if (px < -pad && is_obstacle(map_get(map, nx - 1, ny - dy, nz))) {
+        if (px < -pad && is_obstacle(map_get(map, nx - 1, ny - dy, nz), D_PX)) {
             *x = nx - pad;
         }
-        else if (px > pad && is_obstacle(map_get(map, nx + 1, ny - dy, nz))) {
+        else if (px > pad && is_obstacle(map_get(map, nx + 1, ny - dy, nz), D_NX)) {
             *x = nx + pad;
         }
-        if (py < -pad && is_obstacle(map_get(map, nx, ny - dy - 1, nz))) {
+        if (py < -pad && is_obstacle(map_get(map, nx, ny - dy - 1, nz), D_PY)) {
             *y = ny - pad;
             result = 1;
         }
-        else {
-            W wtop=map_get(map, nx, ny-dy+1, nz);
-            if (py > pad && is_obstacle(wtop) && wtop.material != M_CLOUD) {
-                *y = ny + pad;
-                result = 1;
-            }
+        else if (py > pad && is_obstacle(map_get(map, nx, ny - dy + 1, nz), D_NY)) {
+            *y = ny + pad;
+            result = 1;
         }
-        if (pz < -pad && is_obstacle(map_get(map, nx, ny - dy, nz - 1))) {
+        if (pz < -pad && is_obstacle(map_get(map, nx, ny - dy, nz - 1), D_PZ)) {
             *z = nz - pad;
         }
-        if (pz > pad && is_obstacle(map_get(map, nx, ny - dy, nz + 1))) {
+        else if (pz > pad && is_obstacle(map_get(map, nx, ny - dy, nz + 1), D_NZ)) {
             *z = nz + pad;
         }
     }
@@ -1039,7 +1037,7 @@ static inline int draw_item_faces(float *data, float ao[6][4], float light[6][4]
         {
             make_half_ny(
                 data, ao, light,
-                fnx, fpx, fpy, fny, fnz, fpz,
+                fnx, fpx, 1, fny, fnz, fpz,
                 ex, ey, ez, n, ew);
             return fnx + fpx + 1 + fny + fnz + fpz;
         }
@@ -1825,7 +1823,7 @@ void render_wireframe(Attrib *attrib, Player *player) {
         s->x, s->y, s->z, s->rx, s->ry, g->fov, g->ortho, g->render_radius);
     int hx, hy, hz;
     W hw = hit_test(0, s->x, s->y, s->z, s->rx, s->ry, &hx, &hy, &hz);
-    if (is_obstacle(hw)) {
+    if (is_obstacle(hw, D_ANY)) {
         glUseProgram(attrib->program);
         glLineWidth(1);
         glEnable(GL_COLOR_LOGIC_OP);
@@ -2276,14 +2274,16 @@ void on_click(int mouse_button, int control) {
         W w = hit_test(0, s->x, s->y, s->z, s->rx, s->ry, &hx, &hy, &hz);
         if (w.value) {
             g->M[g->M_index][mouse_button] = w;
+            g->M_last_pressed = mouse_button;
         }
     }
     else { // regular click, place block:
         W hw = hit_test(1, s->x, s->y, s->z, s->rx, s->ry, &hx, &hy, &hz);
-        if (hy > 0 && hy < 256 && is_obstacle(hw)) {
+        if (hy > 0 && hy < 256 && is_obstacle(hw, D_ANY)) {
             if (!player_intersects_block(2, s->x, s->y, s->z, hx, hy, hz)) {
                 set_block(hx, hy, hz, g->M[g->M_index][mouse_button]);
                 record_block(hx, hy, hz, g->M[g->M_index][mouse_button]);
+                g->M_last_pressed = mouse_button;
             }
         }
     }
@@ -2308,11 +2308,18 @@ void rotate_color(int shift, int control) {
         return;
     // check and see if it matches one the current mouse brush:
     int match = -1;
-    if (w.value == g->M[g->M_index][0].value) {
-        match = 0;
+    if (g->M[g->M_index][0].value != g->M[g->M_index][1].value) {
+        if (w.value == g->M[g->M_index][0].value) {
+            match = 0;
+        } 
+        else if (w.value == g->M[g->M_index][1].value) {
+            match = 1;
+        }
     } 
-    else if (w.value == g->M[g->M_index][1].value) {
-        match = 1;
+    else {
+        if (w.value == g->M[g->M_index][0].value) {
+            match = g->M_last_pressed;
+        } 
     }
     // update color
     w.color = (w.color + 1-2*shift)&127; // let 128-255 be reserved
@@ -2617,7 +2624,7 @@ void handle_movement(double dt) {
         }
     }
     if (s->y < 0) {
-        s->y = highest_block(s->x, s->z) + 2;
+        s->y = highest_land(s->x, s->z) + 2;
     }
 }
 
@@ -2636,7 +2643,7 @@ void parse_buffer(char *buffer) {
             s->x = ux; s->y = uy; s->z = uz; s->rx = urx; s->ry = ury;
             force_chunks(me);
             if (uy == 0) {
-                s->y = highest_block(s->x, s->z) + 2;
+                s->y = highest_land(s->x, s->z) + 2;
             }
         }
         int bp, bq, bx, by, bz, bw;
@@ -2645,7 +2652,7 @@ void parse_buffer(char *buffer) {
         {
             _set_block(bp, bq, bx, by, bz, bw, 0);
             if (player_intersects_block(2, s->x, s->y, s->z, bx, by, bz)) {
-                s->y = highest_block(s->x, s->z) + 2;
+                s->y = highest_land(s->x, s->z) + 2;
             }
         }
         if (sscanf(line, "L,%d,%d,%d,%d,%d,%d",
@@ -2937,7 +2944,7 @@ int main(int argc, char **argv) {
         int loaded = db_load_state(&s->x, &s->y, &s->z, &s->rx, &s->ry);
         force_chunks(me);
         if (!loaded) {
-            s->y = highest_block(s->x, s->z) + 2;
+            s->y = highest_land(s->x, s->z) + 2;
         }
 
         // BEGIN MAIN LOOP //

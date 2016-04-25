@@ -991,9 +991,9 @@ void light_fill(
 }
 
 static inline int count_item_faces(int fnx, int fpx, int fpy, int fny, int fnz, int fpz, W w) {
-    // you can assume at least one of f1-6 are nonzero,
-    // and that shape is not S_CUBE
     switch (w.shape) {
+        case S_CUBE:
+            return fnx + fpx + fpy + fny + fnz + fpz;
         case S_PLANT:
             return 4;
         case S_HALF_NY:
@@ -1001,16 +1001,25 @@ static inline int count_item_faces(int fnx, int fpx, int fpy, int fny, int fnz, 
         case S_HALF_PY:
             return fnx + fpx + fpy + 1 + fnz + fpz;
     }
-    return 0; //fnx+fpx+fpy+fny+fnz+fpz;
+    return 0; 
 }
 
 static inline int add_item_faces(float *data, float ao[6][4], float light[6][4],
     int fnx, int fpx, int fpy, int fny, int fnz, int fpz,
     int ex, int ey, int ez, float n, W ew)
 {
-    // you can assume at least one of f (p)ositive/(n)egative x/y/z are nonzero,
-    // and that shape is not S_CUBE
+    if (fnx + fpx + fpy + fny + fnz + fpz == 0)
+        return 0;
+
     switch (ew.shape) {
+        case S_CUBE:
+        {
+            make_cube(
+                data, ao, light,
+                fnx, fpx, fpy, fny, fnz, fpz,
+                ex, ey, ez, 0.5, ew);
+            return fnx + fpx + fpy + fny + fnz + fpz;
+        }
         case S_PLANT:
         {
             float min_ao = 1;
@@ -1134,15 +1143,9 @@ void compute_chunk(WorkerItem *item) {
         int f4 = !opaque[XYZ(x, y - 1, z)] && (ey > 0);
         int f5 = !opaque[XYZ(x, y, z - 1)];
         int f6 = !opaque[XYZ(x, y, z + 1)];
-        int total = f1 + f2 + f3 + f4 + f5 + f6;
-        if (total == 0) {
+        int total = count_item_faces(f1, f2, f3, f4, f5, f6, ew);
+        if (total == 0)
             continue;
-        }
-        if (ew.shape != S_CUBE) {
-            total = count_item_faces(f1, f2, f3, f4, f5, f6, ew);
-            if (total == 0)
-                continue;
-        }
         miny = MIN(miny, ey);
         maxy = MAX(maxy, ey);
         faces += total;
@@ -1164,8 +1167,7 @@ void compute_chunk(WorkerItem *item) {
         int f4 = !opaque[XYZ(x, y - 1, z)] && (ey > 0);
         int f5 = !opaque[XYZ(x, y, z - 1)];
         int f6 = !opaque[XYZ(x, y, z + 1)];
-        int total = f1 + f2 + f3 + f4 + f5 + f6;
-        if (total == 0) {
+        if (f1 + f2 + f3 + f4 + f5 + f6 == 0) {
             continue;
         }
         char neighbors[27] = {0};
@@ -1193,19 +1195,10 @@ void compute_chunk(WorkerItem *item) {
         float ao[6][4];
         float light[6][4];
         occlusion(neighbors, lights, shades, ao, light);
-        if (ew.shape == S_CUBE) {
-            make_cube(
-                data + offset, ao, light,
-                f1, f2, f3, f4, f5, f6,
-                ex, ey, ez, 0.5, ew);
-            offset += total * (13*6); // 6 vertices per square face (2 triangles, 3 vertices each)
-        }
-        else {
-            offset += add_item_faces(
-                data + offset, ao, light,
-                f1, f2, f3, f4, f5, f6,
-                ex, ey, ez, 0.5, ew) * (13*6);
-        }
+        offset += add_item_faces(
+            data + offset, ao, light,
+            f1, f2, f3, f4, f5, f6,
+            ex, ey, ez, 0.5, ew) * (13*6);
     } END_MAP_FOR_EACH;
 
     free(opaque);
@@ -1854,10 +1847,7 @@ void draw_item(Attrib *attrib, float *pos, W w) {
     // draw item w to HUD at position pos
     if (w.shape < 0)
         return;
-    int faces = 6;
-    if (w.shape != S_CUBE) {
-        faces = count_item_faces(1, 1, 1, 1, 1, 1, w);
-    }
+    int faces = count_item_faces(1, 1, 1, 1, 1, 1, w);
     
     GLfloat *data = malloc_faces(13, faces);
     float ao[6][4] = {0};
@@ -1870,14 +1860,7 @@ void draw_item(Attrib *attrib, float *pos, W w) {
         {0.5, 0.5, 0.5, 0.5}
     };
 
-    if (w.shape == S_CUBE) {
-        make_cube(
-            data, ao, light,
-            1, 1, 1, 1, 1, 1,
-            pos[0], pos[1], pos[2], 0.5, w);
-    }
-    else
-        add_item_faces(data, ao, light, 1, 1, 1, 1, 1, 1, pos[0], pos[1], pos[2], 0.5, w);
+    add_item_faces(data, ao, light, 1, 1, 1, 1, 1, 1, pos[0], pos[1], pos[2], 0.5, w);
     GLuint buffer = gen_faces(13, faces, data); // moves data into gpu, frees data
     draw_triangles_3d_ao(attrib, buffer, 6*faces); 
     del_buffer(buffer); // free gpu resources

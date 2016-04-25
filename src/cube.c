@@ -3,6 +3,11 @@
 #include "matrix.h"
 #include "util.h"
 
+#define UV_S (0.0625)
+#define UV_ZERO (0 + 1 / 2048.0)
+#define UV_ONE (0.0625 - 1 / 2048.0)
+#define UV_HALF (0.0625/2 - 1 / 2048.0)
+
 void make_cube_faces(
     float *data, float ao[6][4], float light[6][4],
     int left, int right, int top, int bottom, int front, int back,
@@ -415,13 +420,23 @@ void make_half_ny_faces(
         {0, 0, -1},
         {0, 0, +1}
     };
+//  // keep bottom half of cube
+//    static const float uvs[6][4][2] = {
+//        {{UV_ZERO, UV_ZERO}, {UV_ONE, UV_ZERO}, {UV_ZERO, UV_HALF}, {UV_ONE, UV_HALF}},
+//        {{UV_ONE, UV_ZERO}, {UV_ZERO, UV_ZERO}, {UV_ONE, UV_HALF}, {UV_ZERO, UV_HALF}},
+//        {{UV_ZERO, UV_ONE}, {UV_ZERO, UV_ZERO}, {UV_ONE, UV_ONE}, {UV_ONE, UV_ZERO}},
+//        {{UV_ZERO, UV_ZERO}, {UV_ZERO, UV_ONE}, {UV_ONE, UV_ZERO}, {UV_ONE, UV_ONE}},
+//        {{UV_ONE, UV_ZERO}, {UV_ONE, UV_HALF}, {UV_ZERO, UV_ZERO}, {UV_ZERO, UV_HALF}},
+//        {{UV_ZERO, UV_ZERO}, {UV_ZERO, UV_HALF}, {UV_ONE, UV_ZERO}, {UV_ONE, UV_HALF}}
+//    };
+    // keep top half of cube
     static const float uvs[6][4][2] = {
-        {{0, 0}, {1, 0}, {0, 0.5}, {1, 0.5}},
-        {{1, 0}, {0, 0}, {1, 0.5}, {0, 0.5}},
-        {{0, 1}, {0, 0}, {1, 1}, {1, 0}},
-        {{0, 0}, {0, 1}, {1, 0}, {1, 1}},
-        {{1, 0}, {1, 0.5}, {0, 0}, {0, 0.5}},
-        {{0, 0}, {0, 0.5}, {1, 0}, {1, 0.5}}
+        {{UV_ZERO, UV_HALF}, {UV_ONE, UV_HALF}, {UV_ZERO, UV_ONE}, {UV_ONE, UV_ONE}},
+        {{UV_ONE, UV_HALF}, {UV_ZERO, UV_HALF}, {UV_ONE, UV_ONE}, {UV_ZERO, UV_ONE}},
+        {{UV_ZERO, UV_ONE}, {UV_ZERO, UV_ZERO}, {UV_ONE, UV_ONE}, {UV_ONE, UV_ZERO}},
+        {{UV_ZERO, UV_ZERO}, {UV_ZERO, UV_ONE}, {UV_ONE, UV_ZERO}, {UV_ONE, UV_ONE}},
+        {{UV_ONE, UV_HALF}, {UV_ONE, UV_ONE}, {UV_ZERO, UV_HALF}, {UV_ZERO, UV_ONE}},
+        {{UV_ZERO, UV_HALF}, {UV_ZERO, UV_ONE}, {UV_ONE, UV_HALF}, {UV_ONE, UV_ONE}}
     };
     static const float indices[6][6] = {
         {0, 3, 2, 0, 1, 3},
@@ -440,17 +455,14 @@ void make_half_ny_faces(
         {0, 2, 1, 2, 3, 1}
     };
     float *d = data;
-    float s = 0.0625;
-    float a = 0 + 1 / 2048.0;
-    float b = s - 1 / 2048.0;
     int faces[6] = {left, right, top, bottom, front, back};
     int tiles[6] = {wleft, wright, wtop, wbottom, wfront, wback};
     for (int i = 0; i < 6; i++) {
         if (faces[i] == 0) {
             continue;
         }
-        float du = (tiles[i] % 16) * s;
-        float dv = (tiles[i] / 16) * s;
+        float du = (tiles[i] % 16) * UV_S;
+        float dv = (tiles[i] / 16) * UV_S;
         int flip = ao[i][0] + ao[i][3] > ao[i][1] + ao[i][2];
         for (int v = 0; v < 6; v++) {
             int j = flip ? flipped[i][v] : indices[i][v];
@@ -460,8 +472,8 @@ void make_half_ny_faces(
             *(d++) = normals[i][0];
             *(d++) = normals[i][1];
             *(d++) = normals[i][2];
-            *(d++) = du + (uvs[i][j][0] ? b : a);
-            *(d++) = dv + (uvs[i][j][1] ? b : a);
+            *(d++) = du + uvs[i][j][0];
+            *(d++) = dv + uvs[i][j][1];
             *(d++) = ao[i][j];
             *(d++) = light[i][j];
             *(d++) = color[0];

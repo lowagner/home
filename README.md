@@ -2,7 +2,11 @@
 
 Minecraft clone for Windows, Mac OS X and Linux. Just a few thousand lines of C using modern OpenGL (shaders). Online multiplayer support is currently borked (go to fogleman's repository for something functional, and see http://www.michaelfogleman.com/craft/).
 
-![Screenshot](http://i.imgur.com/SH7wcas.png)
+There's support for changing colors of non-cloud blocks (use C or Shift+C to cycle forward or backward):
+
+![Screenshot](https://raw.githubusercontent.com/lowagner/home/master/ColoredBlocks.png)
+
+And there will be support for different shaped blocks.
 
 ### Features
 
@@ -206,3 +210,6 @@ http://0fps.wordpress.com/2013/07/03/ambient-occlusion-for-minecraft-like-worlds
 * lodepng is used for loading PNG textures.
 * sqlite3 is used for saving the blocks added / removed by the user.
 * tinycthread is used for cross-platform threading.
+
+![Screenshot](http://i.imgur.com/SH7wcas.png)
+

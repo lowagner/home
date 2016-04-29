@@ -189,14 +189,24 @@ void biome1(int x, int z, int flag, world_func func, void *arg) {
 void biome2(int x, int z, int flag, world_func func, void *arg) {
     int lo = simplex2(x * 0.01, z * 0.01, 4, 0.5, 2) * 8 + 8;
     int hi = simplex2(-x * 0.01, -z * 0.01, 4, 0.5, 2) * 32 + 32;
-    uint8_t lookup[] = {M_STONE, M_CEMENT, M_COBBLE, M_LIGHT_STONE, M_DARK_STONE};
+    W lookup[] = {
+        (W) {.shape=S_CUBE*flag, .material=M_STONE, .color=113, .action=0},
+        (W) {.shape=S_CUBE*flag, .material=M_COBBLE, .color=118, .action=0},
+        (W) {.shape=S_CUBE*flag, .material=M_STONE, .color=115, .action=0},
+        (W) {.shape=S_CUBE*flag, .material=M_CEMENT, .color=113, .action=0},
+        (W) {.shape=S_CUBE*flag, .material=M_STONE, .color=117, .action=0},
+        (W) {.shape=S_CUBE*flag, .material=M_CEMENT, .color=117, .action=0},
+        (W) {.shape=S_CUBE*flag, .material=M_LIGHT_STONE, .color=117, .action=0},
+        (W) {.shape=S_CUBE*flag, .material=M_DARK_STONE, .color=117, .action=0},
+        (W) {.shape=S_CUBE*flag, .material=M_COBBLE, .color=113, .action=0}
+    };
     for (int y = 0; y < lo; y++) {
-        func(x, y, z, (W) {.shape=S_CUBE*flag, .material=M_CEMENT, .color=0, .action=0}, arg);
+        func(x, y, z, lookup[5], arg);
     }
     for (int y = lo; y < hi; y++) {
         if (simplex3(x * 0.01, y * 0.01, z * 0.01, 4, 0.5, 2) > 0.5) {
             int i = simplex3(-x * 0.01, -y * 0.01, -z * 0.01, 4, 0.5, 2) * 10;
-            func(x, y, z, (W) {.shape=S_CUBE*flag, .material=lookup[i%5], .color=0, .action=0}, arg);
+            func(x, y, z, lookup[i%9], arg);
         } 
         else if (y < 11) {
             func(x, y, z, (W) {.shape=S_CUBE*flag, .material=M_WATER, .color=C_WATER, .action=A_WATER}, arg);
@@ -220,17 +230,24 @@ void biome3(int x, int z, int flag, world_func func, void *arg) {
     int lo = simplex2(x * 0.01, z * 0.01, 4, 0.5, 2) * 20 + 10;
     int hi = simplex2(-x * 0.01, -z * 0.01, 4, 0.5, 2) * 40 + 28;
     for (int y = 0; y < lo; y++) {
-        func(x, y, z, (W) {.shape=S_CUBE*flag, .material=M_STONE, .color=0, .action=0}, arg);
+        func(x, y, z, (W) {.shape=S_CUBE*flag, .material=M_STONE, .color=115, .action=0}, arg);
     }
     int i;
-    uint8_t lookup[4] = {M_PLANK, M_WOOD, M_CHEST, M_SNOW};
+    W lookup[] = {
+        (W) {.shape=S_CUBE*flag, .material=M_VERTICAL_PLANK, .color=113, .action=0},
+        (W) {.shape=S_CUBE*flag, .material=M_VERTICAL_PLANK, .color=118, .action=0},
+        (W) {.shape=S_CUBE*flag, .material=M_WOOD, .color=118, .action=0},
+        (W) {.shape=S_CUBE*flag, .material=M_WOOD, .color=115, .action=0},
+        (W) {.shape=S_CUBE*flag, .material=M_CHEST, .color=111, .action=0},
+        (W) {.shape=S_CUBE*flag, .material=M_SNOW, .color=0, .action=0}
+    };
     for (int y = lo; y < hi; y++) {
-        i = simplex3(-x * 0.01, -y * 0.01, -z * 0.01, 3, 0.5, 2) * 4;
-        func(x, y, z, (W) {.shape=S_CUBE*flag, .material=lookup[i], .color=0, .action=0}, arg);
+        i = simplex3(-x * 0.01, -y * 0.01, -z * 0.01, 3, 0.5, 2) * 6;
+        func(x, y, z, lookup[i], arg);
     }
     if (i < 3 && simplex3(-x*0.005, -hi*0.005, -z*0.005, 3, 0.5, 2) > 0.55) {
         // add some lichen if the top isn't snow
-        int c = simplex3(-x*0.1, -hi*0.1, -z*0.1, 3, 0.5, 2) * 2; 
+        int c = simplex3(-x*0.1, -hi*0.1, -z*0.1, 3, 0.5, 2) * 3; 
         func(x, hi, z, (W) {.shape=S_CUBE*flag, .material=M_LEAVES, .color=c, .action=0}, arg);
     }
 }

@@ -2707,12 +2707,16 @@ void init_M() {
     g->M[index  ][1] = (W){.shape=S_HALF_NY, .material=M_WATER, .color=C_WATER, .action=A_WATER};
     g->M[++index][0] = (W){.shape=S_CUBE, .material=M_GRASS, .color=0, .action=0};
     g->M[index  ][1] = (W){.shape=S_CUBE, .material=M_SAND, .color=0, .action=0};
-    g->M[++index][0] = (W){.shape=S_HALF_NY, .material=M_LIGHT_STONE, .color=0, .action=0};
-    g->M[index  ][1] = (W){.shape=S_HALF_PY, .material=M_DARK_STONE, .color=0, .action=0};
+    g->M[++index][0] = (W){.shape=S_HALF_NY, .material=M_LIGHT_STONE, .color=117, .action=0};
+    g->M[index  ][1] = (W){.shape=S_HALF_PY, .material=M_DARK_STONE, .color=117, .action=0};
     g->M[++index][0] = (W){.shape=S_CUBE, .material=M_BRICK, .color=0, .action=0};
-    g->M[index  ][1] = (W){.shape=S_CUBE, .material=M_PLANK, .color=0, .action=0};
-    g->M[++index][0] = (W){.shape=S_CUBE, .material=M_CEMENT, .color=0, .action=0};
+    g->M[index  ][1] = (W){.shape=S_CUBE, .material=M_CEMENT, .color=0, .action=0};
+    g->M[++index][0] = (W){.shape=S_CUBE, .material=M_PLANK, .color=0, .action=0};
     g->M[index  ][1] = (W){.shape=S_CUBE, .material=M_GLASS, .color=0, .action=0};
+    g->M[++index][0] = (W){.shape=S_CUBE, .material=M_VERTICAL_PLANK, .color=0, .action=0};
+    g->M[index  ][1] = (W){.shape=S_CUBE, .material=M_COBBLE, .color=118, .action=0};
+    g->M[++index][0] = (W){.shape=S_CUBE, .material=M_SNOW, .color=0, .action=0};
+    g->M[index  ][1] = (W){.shape=S_CUBE, .material=M_STONE, .color=118, .action=0};
 }
 
 int main(int argc, char **argv) {

@@ -60,7 +60,7 @@
 #define M_BLUE_FLOWER 23
 #define M_FLOWER_COUNT 6 
 #define M_WATER 255
-#define C_WATER 255
+#define C_WATER 128
 
 #define A_CLOUD 127
 #define A_WATER 126
@@ -87,6 +87,6 @@ int is_obstacle(W w, int direction);
 int is_transparent(W w);
 int is_destructable(W w);
 
-extern float color_palette[256][3];
+extern float hsv_palette[256][3];
 
 #endif

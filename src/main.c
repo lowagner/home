@@ -20,6 +20,8 @@
 #include "util.h"
 #include "world.h"
 
+#define PLAYER_HEIGHT 2
+
 #define MAX_CHUNKS 8192
 #define MAX_PLAYERS 128
 #define WORKERS 4
@@ -2274,7 +2276,7 @@ void rotate_color(int shift, int control) {
         } 
     }
     // update color
-    w.color = (w.color + 1-2*shift)&127; // let 128-255 be reserved
+    w.color = ((w.color + 1-2*shift)&127) | (128 & w.color); 
     set_block(hx, hy, hz, w);
     // update mouse brush, if matching
     if (match >= 0)
@@ -2574,12 +2576,12 @@ void handle_movement(double dt) {
         s->x += vx;
         s->y += vy + dy * ut;
         s->z += vz;
-        if (collide(2, &s->x, &s->y, &s->z)) {
+        if (collide(PLAYER_HEIGHT, &s->x, &s->y, &s->z)) {
             dy = 0;
         }
     }
     if (s->y < 0) {
-        s->y = highest_land(s->x, s->z) + 2;
+        s->y = highest_land(s->x, s->z) + PLAYER_HEIGHT;
     }
 }
 
@@ -2598,7 +2600,7 @@ void parse_buffer(char *buffer) {
             s->x = ux; s->y = uy; s->z = uz; s->rx = urx; s->ry = ury;
             force_chunks(me);
             if (uy == 0) {
-                s->y = highest_land(s->x, s->z) + 2;
+                s->y = highest_land(s->x, s->z) + PLAYER_HEIGHT;
             }
         }
         int bp, bq, bx, by, bz, bw;
@@ -2607,7 +2609,7 @@ void parse_buffer(char *buffer) {
         {
             _set_block(bp, bq, bx, by, bz, bw, 0);
             if (player_intersects_block(2, s->x, s->y, s->z, bx, by, bz)) {
-                s->y = highest_land(s->x, s->z) + 2;
+                s->y = highest_land(s->x, s->z) + PLAYER_HEIGHT;
             }
         }
         if (sscanf(line, "L,%d,%d,%d,%d,%d,%d",
@@ -2902,7 +2904,7 @@ int main(int argc, char **argv) {
         int loaded = db_load_state(&s->x, &s->y, &s->z, &s->rx, &s->ry);
         force_chunks(me);
         if (!loaded) {
-            s->y = highest_land(s->x, s->z) + 2;
+            s->y = highest_land(s->x, s->z) + PLAYER_HEIGHT;
         }
 
         // BEGIN MAIN LOOP //

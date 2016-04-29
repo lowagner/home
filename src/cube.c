@@ -103,7 +103,7 @@ void make_cube(
         data, ao, light,
         left, right, top, bottom, front, back,
         wleft, wright, wtop, wbottom, wfront, wback,
-        x, y, z, n, color_palette[w.color]);
+        x, y, z, n, hsv_palette[w.color]);
 }
 
 void make_plant(
@@ -141,7 +141,7 @@ void make_plant(
     int uv = plant_textures[w.material];
     float du = (uv % 16) * s;
     float dv = (uv / 16) * s;
-    const float *c = color_palette[w.color];
+    const float *c = hsv_palette[w.color];
     for (int i = 0; i < 4; i++) {
         for (int v = 0; v < 6; v++) {
             int j = indices[i][v];
@@ -189,7 +189,7 @@ void make_player(
         1, 1, 1, 1, 1, 1,
         226, 224, 241, 209, 225, 227,
         0, 0, 0, 0.4,
-        color_palette[0]); 
+        hsv_palette[0]); 
     float ma[16];
     float mb[16];
     mat_identity(ma);
@@ -420,24 +420,24 @@ void make_half_ny_faces(
         {0, 0, -1},
         {0, 0, +1}
     };
-//  // keep bottom half of cube
-//    static const float uvs[6][4][2] = {
-//        {{UV_ZERO, UV_ZERO}, {UV_ONE, UV_ZERO}, {UV_ZERO, UV_HALF}, {UV_ONE, UV_HALF}},
-//        {{UV_ONE, UV_ZERO}, {UV_ZERO, UV_ZERO}, {UV_ONE, UV_HALF}, {UV_ZERO, UV_HALF}},
-//        {{UV_ZERO, UV_ONE}, {UV_ZERO, UV_ZERO}, {UV_ONE, UV_ONE}, {UV_ONE, UV_ZERO}},
-//        {{UV_ZERO, UV_ZERO}, {UV_ZERO, UV_ONE}, {UV_ONE, UV_ZERO}, {UV_ONE, UV_ONE}},
-//        {{UV_ONE, UV_ZERO}, {UV_ONE, UV_HALF}, {UV_ZERO, UV_ZERO}, {UV_ZERO, UV_HALF}},
-//        {{UV_ZERO, UV_ZERO}, {UV_ZERO, UV_HALF}, {UV_ONE, UV_ZERO}, {UV_ONE, UV_HALF}}
-//    };
-    // keep top half of cube
+    // keep bottom half of cube
     static const float uvs[6][4][2] = {
-        {{UV_ZERO, UV_HALF}, {UV_ONE, UV_HALF}, {UV_ZERO, UV_ONE}, {UV_ONE, UV_ONE}},
-        {{UV_ONE, UV_HALF}, {UV_ZERO, UV_HALF}, {UV_ONE, UV_ONE}, {UV_ZERO, UV_ONE}},
+        {{UV_ZERO, UV_ZERO}, {UV_ONE, UV_ZERO}, {UV_ZERO, UV_HALF}, {UV_ONE, UV_HALF}},
+        {{UV_ONE, UV_ZERO}, {UV_ZERO, UV_ZERO}, {UV_ONE, UV_HALF}, {UV_ZERO, UV_HALF}},
         {{UV_ZERO, UV_ONE}, {UV_ZERO, UV_ZERO}, {UV_ONE, UV_ONE}, {UV_ONE, UV_ZERO}},
         {{UV_ZERO, UV_ZERO}, {UV_ZERO, UV_ONE}, {UV_ONE, UV_ZERO}, {UV_ONE, UV_ONE}},
-        {{UV_ONE, UV_HALF}, {UV_ONE, UV_ONE}, {UV_ZERO, UV_HALF}, {UV_ZERO, UV_ONE}},
-        {{UV_ZERO, UV_HALF}, {UV_ZERO, UV_ONE}, {UV_ONE, UV_HALF}, {UV_ONE, UV_ONE}}
+        {{UV_ONE, UV_ZERO}, {UV_ONE, UV_HALF}, {UV_ZERO, UV_ZERO}, {UV_ZERO, UV_HALF}},
+        {{UV_ZERO, UV_ZERO}, {UV_ZERO, UV_HALF}, {UV_ONE, UV_ZERO}, {UV_ONE, UV_HALF}}
     };
+    // keep top half of cube
+    //static const float uvs[6][4][2] = {
+    //    {{UV_ZERO, UV_HALF}, {UV_ONE, UV_HALF}, {UV_ZERO, UV_ONE}, {UV_ONE, UV_ONE}},
+    //    {{UV_ONE, UV_HALF}, {UV_ZERO, UV_HALF}, {UV_ONE, UV_ONE}, {UV_ZERO, UV_ONE}},
+    //    {{UV_ZERO, UV_ONE}, {UV_ZERO, UV_ZERO}, {UV_ONE, UV_ONE}, {UV_ONE, UV_ZERO}},
+    //    {{UV_ZERO, UV_ZERO}, {UV_ZERO, UV_ONE}, {UV_ONE, UV_ZERO}, {UV_ONE, UV_ONE}},
+    //    {{UV_ONE, UV_HALF}, {UV_ONE, UV_ONE}, {UV_ZERO, UV_HALF}, {UV_ZERO, UV_ONE}},
+    //    {{UV_ZERO, UV_HALF}, {UV_ZERO, UV_ONE}, {UV_ONE, UV_HALF}, {UV_ONE, UV_ONE}}
+    //};
     static const float indices[6][6] = {
         {0, 3, 2, 0, 1, 3},
         {0, 3, 1, 0, 2, 3},
@@ -500,5 +500,5 @@ void make_half_ny(
         data, ao, light,
         left, right, top, bottom, front, back,
         wleft, wright, wtop, wbottom, wfront, wback,
-        x, y, z, n, color_palette[w.color]);
+        x, y, z, n, hsv_palette[w.color]);
 }

@@ -42,7 +42,7 @@ void map_copy(Map *dst, Map *src) {
     memcpy(dst->data, src->data, (dst->mask + 1) * sizeof(MapEntry));
 }
 
-int map_set(Map *map, int x, int y, int z, W w) {
+int map_set(Map *map, int x, int y, int z, int w) {
     unsigned int index = hash(x, y, z) & map->mask;
     x -= map->dx;
     y -= map->dy;
@@ -58,12 +58,12 @@ int map_set(Map *map, int x, int y, int z, W w) {
         entry = map->data + index;
     }
     if (overwrite) {
-        if (entry->e.w.value != w.value) {
-            entry->e.w.value = w.value;
+        if (entry->e.w != w) {
+            entry->e.w = w;
         }
         return 1;
     }
-    else if (w.value) {
+    else if (w) {
         entry->e.x = x;
         entry->e.y = y;
         entry->e.z = z;
@@ -77,14 +77,14 @@ int map_set(Map *map, int x, int y, int z, W w) {
     return 0;
 }
 
-W map_get(Map *map, int x, int y, int z) {
+int map_get(Map *map, int x, int y, int z) {
     unsigned int index = hash(x, y, z) & map->mask;
     x -= map->dx;
     y -= map->dy;
     z -= map->dz;
-    if (x < 0 || x > 255) return (W){.value=0};
-    if (y < 0 || y > 255) return (W){.value=0};
-    if (z < 0 || z > 255) return (W){.value=0};
+    if (x < 0 || x > 255) return 0;
+    if (y < 0 || y > 255) return 0;
+    if (z < 0 || z > 255) return 0;
     MapEntry *entry = map->data + index;
     while (!EMPTY_ENTRY(entry)) {
         if (entry->e.x == x && entry->e.y == y && entry->e.z == z) {
@@ -93,7 +93,7 @@ W map_get(Map *map, int x, int y, int z) {
         index = (index + 1) & map->mask;
         entry = map->data + index;
     }
-    return (W){.value=0};
+    return 0;
 }
 
 void map_grow(Map *map) {

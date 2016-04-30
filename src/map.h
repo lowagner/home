@@ -12,16 +12,16 @@
         int ex = entry->e.x + map->dx; \
         int ey = entry->e.y + map->dy; \
         int ez = entry->e.z + map->dz; \
-        W ew = entry->e.w;
+        int ew = entry->e.w;
 
 #define END_MAP_FOR_EACH }
 
-#include "item.h"
+#include <stdint.h>
 
 typedef union {
     int64_t value;
     struct {
-        W w;
+        int32_t w;
         uint8_t x;
         uint8_t y;
         uint8_t z;
@@ -42,7 +42,7 @@ void map_alloc(Map *map, int dx, int dy, int dz, int mask);
 void map_free(Map *map);
 void map_copy(Map *dst, Map *src);
 void map_grow(Map *map);
-int map_set(Map *map, int x, int y, int z, W w);
-W map_get(Map *map, int x, int y, int z);
+int map_set(Map *map, int x, int y, int z, int w);
+int map_get(Map *map, int x, int y, int z);
 
 #endif

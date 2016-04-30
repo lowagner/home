@@ -581,7 +581,7 @@ int highest_land(float x, float z) {
     if (chunk) {
         Map *map = &chunk->map;
         MAP_FOR_EACH(map, ex, ey, ez, ew) {
-            if (is_obstacle(ew, 0) && ex == nx && ez == nz) {
+            if (is_obstacle((W){.value=ew}, 0) && ex == nx && ez == nz) {
                 result = MAX(result, ey);
             }
         } END_MAP_FOR_EACH;
@@ -605,7 +605,7 @@ W _hit_test(
         int ny = roundf(y);
         int nz = roundf(z);
         if (nx != px || ny != py || nz != pz) {
-            hw = map_get(map, nx, ny, nz);
+            hw = (W) {.value = map_get(map, nx, ny, nz)};
             //if (g->debug)
                 //printf("  looking at (%d,%d,%d)->(%d)\n",nx,ny,nz,hw.value);
             if (hw.shape > 0) {
@@ -712,24 +712,24 @@ int collide(int height, float *x, float *y, float *z) {
     float pz = *z - nz;
     float pad = 0.25;
     for (int dy = 0; dy < height; dy++) {
-        if (px < -pad && is_obstacle(map_get(map, nx - 1, ny - dy, nz), D_PX)) {
+        if (px < -pad && is_obstacle((W){.value=map_get(map, nx - 1, ny - dy, nz)}, D_PX)) {
             *x = nx - pad;
         }
-        else if (px > pad && is_obstacle(map_get(map, nx + 1, ny - dy, nz), D_NX)) {
+        else if (px > pad && is_obstacle((W){.value=map_get(map, nx + 1, ny - dy, nz)}, D_NX)) {
             *x = nx + pad;
         }
-        if (py < -pad && is_obstacle(map_get(map, nx, ny - dy - 1, nz), D_PY)) {
+        if (py < -pad && is_obstacle((W){.value=map_get(map, nx, ny - dy - 1, nz)}, D_PY)) {
             *y = ny - pad;
             result = 1;
         }
-        else if (py > pad && is_obstacle(map_get(map, nx, ny - dy + 1, nz), D_NY)) {
+        else if (py > pad && is_obstacle((W){.value=map_get(map, nx, ny - dy + 1, nz)}, D_NY)) {
             *y = ny + pad;
             result = 1;
         }
-        if (pz < -pad && is_obstacle(map_get(map, nx, ny - dy, nz - 1), D_PZ)) {
+        if (pz < -pad && is_obstacle((W){.value=map_get(map, nx, ny - dy, nz - 1)}, D_PZ)) {
             *z = nz - pad;
         }
-        else if (pz > pad && is_obstacle(map_get(map, nx, ny - dy, nz + 1), D_NZ)) {
+        else if (pz > pad && is_obstacle((W){.value=map_get(map, nx, ny - dy, nz + 1)}, D_NZ)) {
             *z = nz + pad;
         }
     }
@@ -1062,7 +1062,7 @@ void compute_chunk(WorkerItem *item) {
                     continue;
                 }
                 // END TODO
-                opaque[XYZ(x, y, z)] = !is_transparent(ew);
+                opaque[XYZ(x, y, z)] = !is_transparent((W){.value=ew});
                 if (opaque[XYZ(x, y, z)]) {
                     highest[XZ(x, z)] = MAX(highest[XZ(x, z)], y);
                 }
@@ -1082,7 +1082,7 @@ void compute_chunk(WorkerItem *item) {
                     int x = ex - ox;
                     int y = ey - oy;
                     int z = ez - oz;
-                    light_fill(opaque, light, x, y, z, ew.value, 1);
+                    light_fill(opaque, light, x, y, z, ew, 1);
                 } END_MAP_FOR_EACH;
             }
         }
@@ -1095,7 +1095,8 @@ void compute_chunk(WorkerItem *item) {
     int maxy = 0;
     int faces = 0;
     MAP_FOR_EACH(map, ex, ey, ez, ew) {
-        if (ew.shape <= 0) {
+        W w = (W){.value=ew};
+        if (w.shape <= 0) {
             continue;
         }
         int x = ex - ox;
@@ -1107,7 +1108,7 @@ void compute_chunk(WorkerItem *item) {
         int f4 = !opaque[XYZ(x, y - 1, z)] && (ey > 0);
         int f5 = !opaque[XYZ(x, y, z - 1)];
         int f6 = !opaque[XYZ(x, y, z + 1)];
-        int total = count_item_faces(f1, f2, f3, f4, f5, f6, ew);
+        int total = count_item_faces(f1, f2, f3, f4, f5, f6, w);
         if (total == 0)
             continue;
         miny = MIN(miny, ey);
@@ -1119,7 +1120,8 @@ void compute_chunk(WorkerItem *item) {
     GLfloat *data = malloc_faces(13, faces);
     int offset = 0;
     MAP_FOR_EACH(map, ex, ey, ez, ew) {
-        if (ew.shape <= 0) {
+        W w = (W){.value=ew};
+        if (w.shape <= 0) {
             continue;
         }
         int x = ex - ox;
@@ -1162,7 +1164,7 @@ void compute_chunk(WorkerItem *item) {
         offset += add_item_faces(
             data + offset, ao, light,
             f1, f2, f3, f4, f5, f6,
-            ex, ey, ez, 0.5, ew) * (13*6);
+            ex, ey, ez, 0.5, w) * (13*6);
     } END_MAP_FOR_EACH;
 
     free(opaque);
@@ -1210,7 +1212,7 @@ void gen_chunk_buffer(Chunk *chunk) {
     chunk->dirty = 0;
 }
 
-void map_set_func(int x, int y, int z, W w, void *arg) {
+void map_set_func(int x, int y, int z, int w, void *arg) {
     Map *map = (Map *)arg;
     map_set(map, x, y, z, w);
 }
@@ -1554,8 +1556,8 @@ void toggle_light(int x, int y, int z) {
     Chunk *chunk = find_chunk(p, q);
     if (chunk) {
         Map *map = &chunk->lights;
-        int w = map_get(map, x, y, z).value ? 0 : 15;
-        map_set(map, x, y, z, (W){.value=w});
+        int w = map_get(map, x, y, z) ? 0 : 15;
+        map_set(map, x, y, z, w);
         db_insert_light(p, q, x, y, z, w);
         client_light(x, y, z, w);
         dirty_chunk(chunk);
@@ -1566,7 +1568,7 @@ void set_light(int p, int q, int x, int y, int z, int w) {
     Chunk *chunk = find_chunk(p, q);
     if (chunk) {
         Map *map = &chunk->lights;
-        if (map_set(map, x, y, z, (W){.value=w})) {
+        if (map_set(map, x, y, z, w)) {
             dirty_chunk(chunk);
             db_insert_light(p, q, x, y, z, w);
         }
@@ -1580,7 +1582,7 @@ void _set_block(int p, int q, int x, int y, int z, int w, int dirty) {
     Chunk *chunk = find_chunk(p, q);
     if (chunk) {
         Map *map = &chunk->map;
-        if (map_set(map, x, y, z, (W){.value=w})) {
+        if (map_set(map, x, y, z, w)) {
             if (dirty) {
                 dirty_chunk(chunk);
             }
@@ -1632,7 +1634,7 @@ W get_block(int x, int y, int z) {
     Chunk *chunk = find_chunk(p, q);
     if (chunk) {
         Map *map = &chunk->map;
-        return map_get(map, x, y, z);
+        return (W){.value=map_get(map, x, y, z)};
     }
     return (W){.value=0};
 }
@@ -2707,16 +2709,18 @@ void init_M() {
     g->M[index  ][1] = (W){.shape=S_HALF_NY, .material=M_WATER, .color=C_WATER, .action=A_WATER};
     g->M[++index][0] = (W){.shape=S_CUBE, .material=M_GRASS, .color=0, .action=0};
     g->M[index  ][1] = (W){.shape=S_CUBE, .material=M_SAND, .color=0, .action=0};
-    g->M[++index][0] = (W){.shape=S_HALF_NY, .material=M_LIGHT_STONE, .color=117, .action=0};
-    g->M[index  ][1] = (W){.shape=S_HALF_PY, .material=M_DARK_STONE, .color=117, .action=0};
+    g->M[++index][0] = (W){.shape=S_HALF_NY, .material=M_LIGHT_STONE, .color=107, .action=0};
+    g->M[index  ][1] = (W){.shape=S_HALF_PY, .material=M_DARK_STONE, .color=107, .action=0};
     g->M[++index][0] = (W){.shape=S_CUBE, .material=M_BRICK, .color=0, .action=0};
-    g->M[index  ][1] = (W){.shape=S_CUBE, .material=M_CEMENT, .color=117, .action=0};
+    g->M[index  ][1] = (W){.shape=S_CUBE, .material=M_CEMENT, .color=107, .action=0};
     g->M[++index][0] = (W){.shape=S_CUBE, .material=M_PLANK, .color=0, .action=0};
-    g->M[index  ][1] = (W){.shape=S_CUBE, .material=M_GLASS, .color=118, .action=0};
+    g->M[index  ][1] = (W){.shape=S_CUBE, .material=M_GLASS, .color=108, .action=0};
     g->M[++index][0] = (W){.shape=S_CUBE, .material=M_VERTICAL_PLANK, .color=0, .action=0};
-    g->M[index  ][1] = (W){.shape=S_CUBE, .material=M_COBBLE, .color=118, .action=0};
+    g->M[index  ][1] = (W){.shape=S_CUBE, .material=M_COBBLE, .color=108, .action=0};
     g->M[++index][0] = (W){.shape=S_CUBE, .material=M_SNOW, .color=0, .action=0};
-    g->M[index  ][1] = (W){.shape=S_CUBE, .material=M_STONE, .color=118, .action=0};
+    g->M[index  ][1] = (W){.shape=S_CUBE, .material=M_STONE, .color=108, .action=0};
+    g->M[++index][0] = (W){.shape=S_CUBE, .material=M_SIDING, .color=115, .action=0};
+    g->M[index  ][1] = (W){.shape=S_CUBE, .material=M_VERTICAL_SIDING, .color=115, .action=0};
 }
 
 int main(int argc, char **argv) {

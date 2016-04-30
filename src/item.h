@@ -60,6 +60,8 @@
 #define M_WHITE_FLOWER 23
 #define M_BLUE_FLOWER 24
 #define M_FLOWER_COUNT 6 
+#define M_SIDING 25
+#define M_VERTICAL_SIDING 26
 #define M_WATER 255
 
 #define C_WATER 128

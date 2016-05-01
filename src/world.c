@@ -240,7 +240,7 @@ void biome3(int x, int z, int flag, world_func func, void *arg) {
         (W) {.shape=S_CUBE*flag, .material=M_WOOD, .color=108, .action=0}.value,
         (W) {.shape=S_CUBE*flag, .material=M_WOOD, .color=105, .action=0}.value,
         (W) {.shape=S_CUBE*flag, .material=M_CHEST, .color=101, .action=0}.value,
-        (W) {.shape=S_CUBE*flag, .material=M_SNOW, .color=0, .action=0}.value
+        (W) {.shape=S_CUBE*flag, .material=M_SNOW, .color=108, .action=0}.value
     };
     for (int y = lo; y < hi; y++) {
         i = simplex3(-x * 0.01, -y * 0.01, -z * 0.01, 3, 0.5, 2) * 6;

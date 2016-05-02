@@ -10,6 +10,7 @@ attribute vec3 normal;
 attribute vec4 uv;
 attribute vec3 color_glaze;
 
+varying vec3 under_water;
 varying vec3 fragment_glaze;
 varying vec2 fragment_uv;
 varying float fragment_ao;
@@ -34,7 +35,14 @@ void main() {
     }
     else {
         float camera_distance = distance(camera, position);
-        fog_factor = pow(clamp(camera_distance / fog_distance, 0.0, 1.0), 4.0);
+        if (fog_distance < 0) {
+            fog_factor = pow(clamp(camera_distance / (-0.5 - fog_distance), 0.0, 1.0), 4.0); 
+            under_water = vec3(0.0, 0.0, 0.5);
+        }
+        else {
+            fog_factor = pow(clamp(camera_distance / fog_distance, 0.0, 1.0), 4.0);
+            under_water = vec3(1.0, 1.0, 1.0);
+        }
         float dy = position.y - camera.y;
         float dx = distance(position.xz, camera.xz);
         fog_height = (atan(dy, dx) + pi / 2) / pi;

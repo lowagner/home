@@ -138,6 +138,7 @@ typedef struct {
     int observe1;
     int observe2;
     int flying;
+    int under_water;
     int debug;
     W M[10][2]; // mouse block brushes
     int M_index;
@@ -690,6 +691,25 @@ int hit_test_face(Player *player, int *x, int *y, int *z, int *face) {
             }
             int top = ((degrees + 45) / 90) % 4;
             *face = 4 + top; return 1;
+        }
+    }
+    return 0;
+}
+
+int position_in_water(int height, float x, float y, float z) {
+    int p = chunked(x);
+    int q = chunked(z);
+    Chunk *chunk = find_chunk(p, q);
+    if (!chunk) {
+        return 0;
+    }
+    Map *map = &chunk->map;
+    int nx = roundf(x);
+    int ny = roundf(y);
+    int nz = roundf(z);
+    for (int dy = 0; dy < height; dy++) {
+        if ((W){.value=map_get(map, nx, ny - dy, nz)}.material == M_WATER) {
+            return 1;
         }
     }
     return 0;
@@ -1669,8 +1689,9 @@ int render_chunks(Attrib *attrib, Player *player) {
     glUniform3f(attrib->camera, s->x, s->y, s->z);
     glUniform1i(attrib->sampler, 0);
     glUniform1i(attrib->extra1, 2);
-    glUniform1f(attrib->extra2, light);
-    glUniform1f(attrib->extra3, g->render_radius * CHUNK_SIZE * (0.25+0.75*light));
+    glUniform1f(attrib->extra2, light); // daylight
+    glUniform1f(attrib->extra3, // fog_distance
+        (1.0-2.0*g->under_water)*g->render_radius * CHUNK_SIZE * (0.25+0.75*light));
     glUniform1i(attrib->extra4, g->ortho);
     glUniform1f(attrib->timer, time_of_day());
     for (int i = 0; i < g->chunk_count; i++) {
@@ -2522,7 +2543,18 @@ void handle_movement(double dt) {
     State *s = &g->players->state;
     int sz = 0;
     int sx = 0;
-    //int in_water = 
+    int in_water = 0;
+    if (PLAYER_HEIGHT > 1) {
+        g->under_water = position_in_water(1, s->x, s->y, s->z);
+        if (g->under_water)
+            in_water = 1;
+        else
+            in_water = position_in_water(PLAYER_HEIGHT-1, s->x, s->y-1, s->z);
+    }
+    else {
+        in_water = position_in_water(PLAYER_HEIGHT, s->x, s->y, s->z);
+        g->under_water = in_water;
+    }
     if (!g->typing) {
         float m = dt * 1.5;
         g->ortho = glfwGetKey(g->window, CRAFT_KEY_ORTHO) ? 64 : 0;
@@ -2540,13 +2572,15 @@ void handle_movement(double dt) {
     get_motion_vector(g->flying, sz, sx, s->rx, s->ry, &vx, &vy, &vz);
     if (!g->typing) {
         if (glfwGetKey(g->window, CRAFT_KEY_JUMP)) {
-            if (g->flying) {
+            if (g->flying || in_water) {
                 vy = 1;
             }
             else if (dy == 0) {
                 dy = 8 + (6-2*g->control)*g->shift;
             }
         }
+        else if (in_water)
+            vy = -0.1; // what are you sinking about
     }
     float speed;
     if (g->shift) {
@@ -2556,6 +2590,9 @@ void handle_movement(double dt) {
         speed = g->flying ? 32 : 8;
     }
     if (g->control) {
+        speed /= 2;
+    }
+    if (in_water) {
         speed /= 2;
     }
     int estimate = roundf(sqrtf(
@@ -2568,7 +2605,7 @@ void handle_movement(double dt) {
     vy = vy * ut * speed;
     vz = vz * ut * speed;
     for (int i = 0; i < step; i++) {
-        if (g->flying) {
+        if (g->flying || in_water) {
             dy = 0;
         }
         else {

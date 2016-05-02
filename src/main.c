@@ -2579,7 +2579,7 @@ void handle_movement(double dt) {
                 dy = 8 + (6-2*g->control)*g->shift;
             }
         }
-        else if (in_water)
+        else if (in_water && !g->flying)
             vy = -0.1; // what are you sinking about
     }
     float speed;

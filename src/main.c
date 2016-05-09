@@ -22,6 +22,8 @@
 
 #define PLAYER_HEIGHT 2
 
+#define COLLISION_PAD 0.25f
+
 #define MAX_CHUNKS 8192
 #define MAX_PLAYERS 128
 #define WORKERS 4
@@ -573,6 +575,7 @@ int chunk_visible(float planes[6][4], int p, int q, int miny, int maxy) {
 }
 
 int highest_land(float x, float z) {
+    // TODO:  switch over to foot_collide for the actual height to put player at
     int result = -1;
     int nx = roundf(x);
     int nz = roundf(z);
@@ -715,6 +718,222 @@ int position_in_water(int height, float x, float y, float z) {
     return 0;
 }
 
+float foot_collide_px(W w, float fx, float fy, float fz)
+{
+    if (w.value == 0 || is_plant(w) || w.material == M_WATER || w.material == M_CLOUD)
+        return -1;
+    int shape = w.shape > 0 ? w.shape : -w.shape;
+    switch (shape)
+    {
+        case S_CUBE:
+        case S_HALF_PY:
+            return 0.5;
+    }
+    return -1;
+}
+
+float foot_collide_nx(W w, float fx, float fy, float fz)
+{
+    if (w.value == 0 || is_plant(w) || w.material == M_WATER || w.material == M_CLOUD)
+        return -1;
+    int shape = w.shape > 0 ? w.shape : -w.shape;
+    switch (shape)
+    {
+        case S_CUBE:
+        case S_HALF_PY:
+            return 0.5;
+    }
+    return -1;
+}
+
+float foot_collide_py(W w, float fx, float fy, float fz)
+{
+    if (w.value == 0 || is_plant(w) || w.material == M_WATER)
+        return -1;
+    int shape = w.shape > 0 ? w.shape : -w.shape;
+    switch (shape)
+    {
+        case S_CUBE:
+        case S_HALF_PY:
+            return 0.5;
+        //case S_HALF_NY:
+        //    printf("foot half ny -> fy=%f\n", fy);
+        //    if (fy < -0.5 + COLLISION_PAD) {
+        //        printf("triggering half ny -> fy=%f\n", fy);
+        //        return 0.25; // + COLLISION_PAD;
+        //    }
+    }
+    return -1;
+}
+
+float foot_collide_ny(W w, float fx, float fy, float fz)
+{
+    if (w.value == 0 || is_plant(w) || w.material == M_WATER || w.material == M_CLOUD)
+        return -1;
+    int shape = w.shape > 0 ? w.shape : -w.shape;
+    switch (shape)
+    {
+        case S_CUBE:
+        case S_HALF_NY:
+            return 0.5;
+    }
+    return -1;
+}
+
+float foot_collide_pz(W w, float fx, float fy, float fz)
+{
+    if (w.value == 0 || is_plant(w) || w.material == M_WATER || w.material == M_CLOUD)
+        return -1;
+    int shape = w.shape > 0 ? w.shape : -w.shape;
+    switch (shape)
+    {
+        case S_CUBE:
+        case S_HALF_PY:
+            return 0.5;
+    }
+    return -1;
+}
+
+float foot_collide_nz(W w, float fx, float fy, float fz)
+{
+    if (w.value == 0 || is_plant(w) || w.material == M_WATER || w.material == M_CLOUD)
+        return -1;
+    int shape = w.shape > 0 ? w.shape : -w.shape;
+    switch (shape)
+    {
+        case S_CUBE:
+        case S_HALF_PY:
+            return 0.5;
+    }
+    return -1;
+}
+
+float collide_px(W w, float fx, float fy, float fz)
+{
+    if (w.value == 0 || is_plant(w) || w.material == M_WATER || w.material == M_CLOUD)
+        return -1;
+    int shape = w.shape > 0 ? w.shape : -w.shape;
+    switch (shape)
+    {
+        case S_CUBE:
+        case S_HALF_PY:
+        case S_HALF_NY:
+            return 0.5;
+    }
+    return -1;
+}
+
+float collide_nx(W w, float fx, float fy, float fz)
+{
+    if (w.value == 0 || is_plant(w) || w.material == M_WATER || w.material == M_CLOUD)
+        return -1;
+    int shape = w.shape > 0 ? w.shape : -w.shape;
+    switch (shape)
+    {
+        case S_CUBE:
+        case S_HALF_PY:
+        case S_HALF_NY:
+            return 0.5;
+    }
+    return -1;
+}
+
+float collide_py(W w, float fx, float fy, float fz)
+{
+    if (w.value == 0 || is_plant(w) || w.material == M_WATER)
+        return -1;
+    int shape = w.shape > 0 ? w.shape : -w.shape;
+    switch (shape)
+    {
+        case S_CUBE:
+        case S_HALF_PY:
+            return 0.5;
+        //case S_HALF_NY:
+        //    if (fy < -0.5 + COLLISION_PAD)
+        //        return -0.5 + COLLISION_PAD;
+    }
+    return -1;
+}
+
+float foot_collide(W w, float fx, float fy, float fz)
+{
+    if (w.value == 0 || is_plant(w) || w.material == M_WATER)
+        return -1;
+    int shape = w.shape > 0 ? w.shape : -w.shape;
+    switch (shape)
+    {
+        case S_HALF_NY:
+            if (fy < COLLISION_PAD)
+                return 0;
+        case S_HALF_PY:
+            if (fy > -COLLISION_PAD)
+                return 0.5;
+    }
+    return -1;
+}
+
+float head_collide(W w, float fx, float fy, float fz)
+{
+    if (w.value == 0 || is_plant(w) || w.material == M_WATER || w.material == M_CLOUD)
+        return -1;
+    int shape = w.shape > 0 ? w.shape : -w.shape;
+    switch (shape)
+    {
+        case S_CUBE:
+        case S_HALF_NY:
+            return 0.5;
+        case S_HALF_PY:
+            if (fy > -COLLISION_PAD)
+                return 0;
+    }
+    return -1;
+}
+
+float collide_ny(W w, float fx, float fy, float fz)
+{
+    if (w.value == 0 || is_plant(w) || w.material == M_WATER || w.material == M_CLOUD)
+        return -1;
+    int shape = w.shape > 0 ? w.shape : -w.shape;
+    switch (shape)
+    {
+        case S_CUBE:
+        case S_HALF_PY:
+        case S_HALF_NY:
+            return 0.5;
+    }
+    return -1;
+}
+
+float collide_pz(W w, float fx, float fy, float fz)
+{
+    if (w.value == 0 || is_plant(w) || w.material == M_WATER || w.material == M_CLOUD)
+        return -1;
+    int shape = w.shape > 0 ? w.shape : -w.shape;
+    switch (shape)
+    {
+        case S_CUBE:
+        case S_HALF_PY:
+        case S_HALF_NY:
+            return 0.5;
+    }
+    return -1;
+}
+
+float collide_nz(W w, float fx, float fy, float fz)
+{
+    if (w.value == 0 || is_plant(w) || w.material == M_WATER || w.material == M_CLOUD)
+        return -1;
+    int shape = w.shape > 0 ? w.shape : -w.shape;
+    switch (shape)
+    {
+        case S_CUBE:
+        case S_HALF_PY:
+        case S_HALF_NY:
+            return 0.5;
+    }
+    return -1;
+}
+
 int collide(int height, float *x, float *y, float *z) {
     int result = 0;
     int p = chunked(*x);
@@ -724,34 +943,96 @@ int collide(int height, float *x, float *y, float *z) {
         return result;
     }
     Map *map = &chunk->map;
-    int nx = roundf(*x);
-    int ny = roundf(*y);
-    int nz = roundf(*z);
-    float px = *x - nx;
-    float py = *y - ny;
-    float pz = *z - nz;
-    float pad = 0.25;
-    for (int dy = 0; dy < height; dy++) {
-        if (px < -pad && is_obstacle((W){.value=map_get(map, nx - 1, ny - dy, nz)}, D_PX)) {
-            *x = nx - pad;
+    int cx = roundf(*x); // chunk x,y,z
+    int cy = roundf(*y);
+    int cz = roundf(*z);
+    float fx = *x - cx; // fractional part of x, y, z
+    float fy = *y - cy;
+    float fz = *z - cz;
+    int dy = 0;
+    float push = head_collide((W){.value=map_get(map, cx, cy, cz)}, fx, fy, fz);
+    if (push >= 0) {
+        *y = cy - COLLISION_PAD - push;
+        result = 1;
+    }
+    for (; dy < height-1; dy++) {
+        if (fx < -COLLISION_PAD) { // && is_obstacle((W){.value=map_get(map, cx - 1, cy - dy, cz)}, D_PX)) {
+            push = collide_px((W){.value=map_get(map, cx - 1, cy - dy, cz)}, fx, fy, fz);
+            if (push >= 0)
+                *x = cx - 1 + COLLISION_PAD + push;
         }
-        else if (px > pad && is_obstacle((W){.value=map_get(map, nx + 1, ny - dy, nz)}, D_NX)) {
-            *x = nx + pad;
+        else if (fx > COLLISION_PAD) { // && is_obstacle((W){.value=map_get(map, cx + 1, cy - dy, cz)}, D_NX)) {
+            push = collide_nx((W){.value=map_get(map, cx + 1, cy - dy, cz)}, fx, fy, fz);
+            if (push >= 0)
+                *x = cx + 1 - COLLISION_PAD - push;
         }
-        if (py < -pad && is_obstacle((W){.value=map_get(map, nx, ny - dy - 1, nz)}, D_PY)) {
-            *y = ny - pad;
+        if (fy < -COLLISION_PAD) { // && is_obstacle((W){.value=map_get(map, cx, cy - dy - 1, cz)}, D_PY)) {
+            push = collide_py((W){.value=map_get(map, cx, cy - dy - 1, cz)}, fx, fy, fz);
+            if (push >= 0)
+            {
+                *y = cy - 1 + COLLISION_PAD + push; 
+                result = 1;
+            }
+        }
+        else if (fy > COLLISION_PAD) { // && is_obstacle((W){.value=map_get(map, cx, cy - dy + 1, cz)}, D_NY)) {
+            push = collide_ny((W){.value=map_get(map, cx, cy - dy + 1, cz)}, fx, fy, fz);
+            if (push >= 0)
+            {
+                *y = cy + 1 - COLLISION_PAD - push; // push head down below this point
+                result = 1;
+            }
+        }
+        if (fz < -COLLISION_PAD) { // && is_obstacle((W){.value=map_get(map, cx, cy - dy, cz - 1)}, D_PZ)) {
+            push = collide_pz((W){.value=map_get(map, cx, cy - dy, cz - 1)}, fx, fy, fz);
+            if (push >= 0)
+                *z = cz - 1 + COLLISION_PAD + push;
+        }
+        else if (fz > COLLISION_PAD) { // && is_obstacle((W){.value=map_get(map, cx, cy - dy, cz + 1)}, D_NZ)) {
+            push = collide_nz((W){.value=map_get(map, cx, cy - dy, cz + 1)}, fx, fy, fz);
+            if (push >= 0)
+                *z = cz + 1 - COLLISION_PAD - push;
+        }
+    }
+    push = foot_collide((W){.value=map_get(map, cx, cy - dy, cz)}, fx, fy, fz);
+    if (push >= 0) {
+        *y = cy + COLLISION_PAD + push;
+        return 1;
+    }
+    if (fx < -COLLISION_PAD) { // && is_obstacle((W){.value=map_get(map, cx - 1, cy - dy, cz)}, D_PX)) {
+        push = foot_collide_px((W){.value=map_get(map, cx - 1, cy - dy, cz)}, fx, fy, fz);
+        if (push >= 0)
+            *x = cx - 1 + COLLISION_PAD + push;
+    }
+    else if (fx > COLLISION_PAD) { // && is_obstacle((W){.value=map_get(map, cx + 1, cy - dy, cz)}, D_NX)) {
+        push = foot_collide_nx((W){.value=map_get(map, cx + 1, cy - dy, cz)}, fx, fy, fz);
+        if (push >= 0)
+            *x = cx + 1 - COLLISION_PAD - push;
+    }
+    if (fy < -COLLISION_PAD) { // && is_obstacle((W){.value=map_get(map, cx, cy - dy - 1, cz)}, D_PY)) {
+        push = foot_collide_py((W){.value=map_get(map, cx, cy - dy - 1, cz)}, fx, fy, fz);
+        if (push >= 0)
+        {
+            *y = cy - 1 + COLLISION_PAD + push;
             result = 1;
         }
-        else if (py > pad && is_obstacle((W){.value=map_get(map, nx, ny - dy + 1, nz)}, D_NY)) {
-            *y = ny + pad;
+    }
+    else if (fy > COLLISION_PAD) { // && is_obstacle((W){.value=map_get(map, cx, cy - dy + 1, cz)}, D_NY)) {
+        push = foot_collide_ny((W){.value=map_get(map, cx, cy - dy + 1, cz)}, fx, fy, fz);
+        if (push >= 0)
+        {
+            *y = cy + 1 - COLLISION_PAD - push;
             result = 1;
         }
-        if (pz < -pad && is_obstacle((W){.value=map_get(map, nx, ny - dy, nz - 1)}, D_PZ)) {
-            *z = nz - pad;
-        }
-        else if (pz > pad && is_obstacle((W){.value=map_get(map, nx, ny - dy, nz + 1)}, D_NZ)) {
-            *z = nz + pad;
-        }
+    }
+    if (fz < -COLLISION_PAD) { // && is_obstacle((W){.value=map_get(map, cx, cy - dy, cz - 1)}, D_PZ)) {
+        push = foot_collide_pz((W){.value=map_get(map, cx, cy - dy, cz - 1)}, fx, fy, fz);
+        if (push >= 0)
+            *z = cz - 1 + COLLISION_PAD + push;
+    }
+    else if (fz > COLLISION_PAD) { // && is_obstacle((W){.value=map_get(map, cx, cy - dy, cz + 1)}, D_NZ)) {
+        push = foot_collide_nz((W){.value=map_get(map, cx, cy - dy, cz + 1)}, fx, fy, fz);
+        if (push >= 0)
+            *z = cz + 1 - COLLISION_PAD - push;
     }
     return result;
 }
@@ -761,11 +1042,11 @@ int player_intersects_block(
     float x, float y, float z,
     int hx, int hy, int hz)
 {
-    int nx = roundf(x);
-    int ny = roundf(y);
-    int nz = roundf(z);
+    int cx = roundf(x);
+    int cy = roundf(y);
+    int cz = roundf(z);
     for (int i = 0; i < height; i++) {
-        if (nx == hx && ny - i == hy && nz == hz) {
+        if (cx == hx && cy - i == hy && cz == hz) {
             return 1;
         }
     }
@@ -974,7 +1255,7 @@ void light_fill(
     light_fill(opaque, light, x, y, z + 1, w, 0);
 }
 
-static inline int count_item_faces(int fnx, int fpx, int fpy, int fny, int fnz, int fpz, W w) {
+static int count_item_faces(int fnx, int fpx, int fpy, int fny, int fnz, int fpz, W w) {
     switch (w.shape) {
         case S_CUBE:
             return fnx + fpx + fpy + fny + fnz + fpz;
@@ -988,7 +1269,7 @@ static inline int count_item_faces(int fnx, int fpx, int fpy, int fny, int fnz, 
     return 0; 
 }
 
-static inline int add_item_faces(float *data, float ao[6][4], float light[6][4],
+static int add_item_faces(float *data, float ao[6][4], float light[6][4],
     int fnx, int fpx, int fpy, int fny, int fnz, int fpz,
     int ex, int ey, int ez, float n, W ew)
 {
@@ -2543,8 +2824,9 @@ void handle_movement(double dt) {
     State *s = &g->players->state;
     int sz = 0;
     int sx = 0;
-    int in_water = 0;
+    int in_water = 0; // movement slowed because of being in water
     if (PLAYER_HEIGHT > 1) {
+        // view garbled because of being under water:
         g->under_water = position_in_water(1, s->x, s->y, s->z);
         if (g->under_water)
             in_water = 1;

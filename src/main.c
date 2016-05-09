@@ -756,12 +756,6 @@ float foot_collide_py(W w, float fx, float fy, float fz)
         case S_CUBE:
         case S_HALF_PY:
             return 0.5;
-        //case S_HALF_NY:
-        //    printf("foot half ny -> fy=%f\n", fy);
-        //    if (fy < -0.5 + COLLISION_PAD) {
-        //        printf("triggering half ny -> fy=%f\n", fy);
-        //        return 0.25; // + COLLISION_PAD;
-        //    }
     }
     return -1;
 }
@@ -865,9 +859,12 @@ float foot_collide(W w, float fx, float fy, float fz)
         case S_HALF_NY:
             if (fy < COLLISION_PAD)
                 return 0;
+            break;
+        case S_CUBE:
         case S_HALF_PY:
             if (fy > -COLLISION_PAD)
                 return 0.5;
+            break;
     }
     return -1;
 }

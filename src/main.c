@@ -2556,6 +2556,8 @@ void rotate_item(int dir, int shift, int control) {
 }
 
 void rotate_color(int shift, int control) {
+    // shift - move backwards
+    // control - move slower
     State *s = &g->players->state;
     int hx, hy, hz;
     W w = hit_test(0, s->x, s->y, s->z, s->rx, s->ry, &hx, &hy, &hz);
@@ -2577,7 +2579,7 @@ void rotate_color(int shift, int control) {
         } 
     }
     // update color
-    w.color = ((w.color + 1-2*shift)&127) | (128 & w.color); 
+    w.color = ((w.color + (1-2*shift)*(3-2*control))&127) | (128 & w.color); 
     set_block(hx, hy, hz, w);
     // update mouse brush, if matching
     if (match >= 0)
@@ -2676,10 +2678,10 @@ void on_key(GLFWwindow *window, int key, int scancode, int action, int mods) {
             g->flying = !g->flying;
             return;
         case CRAFT_KEY_ITEM_NEXT:
-            rotate_item(+1, mods & GLFW_MOD_SHIFT, mods & GLFW_MOD_CONTROL);
+            rotate_item(+1, mods & GLFW_MOD_SHIFT, (mods & GLFW_MOD_CONTROL)>>1);
             return;
         case CRAFT_KEY_ITEM_PREV:
-            rotate_item(-1, mods & GLFW_MOD_SHIFT, mods & GLFW_MOD_CONTROL);
+            rotate_item(-1, mods & GLFW_MOD_SHIFT, (mods & GLFW_MOD_CONTROL)>>1);
             return;
         case CRAFT_KEY_OBSERVE:
             g->observe1 = (g->observe1 + 1) % g->player_count;
@@ -2688,7 +2690,7 @@ void on_key(GLFWwindow *window, int key, int scancode, int action, int mods) {
             g->observe2 = (g->observe2 + 1) % g->player_count;
             return;
         case CRAFT_KEY_CHANGE_COLOR:
-            rotate_color(mods & GLFW_MOD_SHIFT, mods & GLFW_MOD_CONTROL);
+            rotate_color(mods & GLFW_MOD_SHIFT, (mods & GLFW_MOD_CONTROL)>>1);
             return;
     }
     if (key >= '0' && key <= '9') {
@@ -3025,18 +3027,18 @@ void init_M() {
     g->M[index  ][1] = (W){.shape=S_HALF_NY, .material=M_WATER, .color=C_WATER, .action=A_WATER};
     g->M[++index][0] = (W){.shape=S_CUBE, .material=M_GRASS, .color=0, .action=0};
     g->M[index  ][1] = (W){.shape=S_CUBE, .material=M_SAND, .color=0, .action=0};
-    g->M[++index][0] = (W){.shape=S_HALF_NY, .material=M_LIGHT_STONE, .color=107, .action=0};
-    g->M[index  ][1] = (W){.shape=S_HALF_PY, .material=M_DARK_STONE, .color=107, .action=0};
+    g->M[++index][0] = (W){.shape=S_HALF_NY, .material=M_LIGHT_STONE, .color=115, .action=0};
+    g->M[index  ][1] = (W){.shape=S_HALF_PY, .material=M_DARK_STONE, .color=113, .action=0};
     g->M[++index][0] = (W){.shape=S_CUBE, .material=M_BRICK, .color=0, .action=0};
-    g->M[index  ][1] = (W){.shape=S_CUBE, .material=M_CEMENT, .color=107, .action=0};
+    g->M[index  ][1] = (W){.shape=S_CUBE, .material=M_CEMENT, .color=120, .action=0};
     g->M[++index][0] = (W){.shape=S_CUBE, .material=M_PLANK, .color=0, .action=0};
-    g->M[index  ][1] = (W){.shape=S_CUBE, .material=M_GLASS, .color=108, .action=0};
+    g->M[index  ][1] = (W){.shape=S_CUBE, .material=M_GLASS, .color=120, .action=0};
     g->M[++index][0] = (W){.shape=S_CUBE, .material=M_VERTICAL_PLANK, .color=0, .action=0};
-    g->M[index  ][1] = (W){.shape=S_CUBE, .material=M_COBBLE, .color=108, .action=0};
+    g->M[index  ][1] = (W){.shape=S_CUBE, .material=M_COBBLE, .color=120, .action=0};
     g->M[++index][0] = (W){.shape=S_CUBE, .material=M_SNOW, .color=0, .action=0};
-    g->M[index  ][1] = (W){.shape=S_CUBE, .material=M_STONE, .color=108, .action=0};
-    g->M[++index][0] = (W){.shape=S_CUBE, .material=M_SIDING, .color=115, .action=0};
-    g->M[index  ][1] = (W){.shape=S_CUBE, .material=M_VERTICAL_SIDING, .color=115, .action=0};
+    g->M[index  ][1] = (W){.shape=S_CUBE, .material=M_STONE, .color=120, .action=0};
+    g->M[++index][0] = (W){.shape=S_CUBE, .material=M_SIDING, .color=8, .action=0};
+    g->M[index  ][1] = (W){.shape=S_CUBE, .material=M_VERTICAL_SIDING, .color=8, .action=0};
 }
 
 int main(int argc, char **argv) {

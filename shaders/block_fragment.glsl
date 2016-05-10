@@ -48,7 +48,7 @@ void main() {
         // rotate hue using HSV stuff
         vec3 fragment_HSV = rgb2hsv(color).xyz;
         fragment_HSV.x = mod(fragment_HSV.x + fragment_glaze.x, 1.0);
-        fragment_HSV.y *= fragment_glaze.y;
+        fragment_HSV.y *= fragment_glaze.y * (0.2+0.8*daylight);
         fragment_HSV.z *= -fragment_glaze.z;
         fragment_HSV.yz = clamp(fragment_HSV.yz, vec2(0.0), vec2(1.0));
         color = hsv2rgb(fragment_HSV);
@@ -71,6 +71,7 @@ void main() {
             vec3 fragment_HSV = rgb2hsv(color).xyz;
             fragment_HSV.x = mod(fragment_HSV.x + fragment_glaze.x, 1.0);
             fragment_HSV.yz *= fragment_glaze.yz;
+            fragment_HSV.y *= (0.2+0.8*daylight); // desaturate at night
             fragment_HSV.yz = clamp(fragment_HSV.yz, vec2(0.0), vec2(1.0));
             color = hsv2rgb(fragment_HSV);
         }

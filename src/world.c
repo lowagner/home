@@ -108,7 +108,7 @@ void biome0(int x, int z, int flag, world_func func, void *arg) {
         func(x, hi, z, (W) {.shape=S_PLANT*flag, .material=M_PLANT_GRASS, .color=0, .action=0}.value, arg);
     }
     if (SHOW_CLOUDS) {
-        for (int y = 60; y < 72; y++) {
+        for (int y = 50; y < 72; y++) {
             if (simplex3(
                 x * 0.01, y * 0.1, z * 0.01, 8, 0.5, 2) > 0.65)
             {

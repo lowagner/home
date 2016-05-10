@@ -205,7 +205,7 @@ int is_transparent(W w) {
         switch (w.material) {
             case M_GLASS:
             case M_LEAVES:
-            case M_CLOUD:
+            //case M_CLOUD:
             case M_WATER:
                 return 1;
             default:

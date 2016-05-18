@@ -2108,7 +2108,7 @@ void render_crosshairs(Attrib *attrib) {
     glDisable(GL_COLOR_LOGIC_OP);
 }
 
-void draw_item(Attrib *attrib, float *pos, W w) {
+void render_item(Attrib *attrib, int *pos, W w) {
     // draw item w to HUD at position pos
     if (w.shape < 0)
         return;
@@ -2139,11 +2139,12 @@ void render_mouse_items(Attrib *attrib) {
     glUniform3f(attrib->camera, 0, 0, 5);
     glUniform1i(attrib->sampler, 0);
     glUniform1f(attrib->timer, time_of_day());
+    glUniform1f(attrib->extra2, 1); // daylight
     
-    float pos[3] = {0,0,0};
-    draw_item(attrib, pos, g->M[g->M_index][0]);
-    pos[0] = pos[2] = 1.1; 
-    draw_item(attrib, pos, g->M[g->M_index][1]);
+    int pos[3] = {0,0,0};
+    render_item(attrib, pos, g->M[g->M_index][0]);
+    pos[0] = pos[2] = 1; 
+    render_item(attrib, pos, g->M[g->M_index][1]);
 }
 
 void render_text(

@@ -2858,14 +2858,14 @@ void handle_movement(double dt) {
         }
         if (moving) {
             if (!g->control) {
-                g->speed += 5*(0.25 + 1.0*g->shift)*dt;
-                if (g->speed > 100.0)
-                    g->speed = 100.0;
+                g->speed += 2*(0.25 + 1.0*g->shift)*dt;
+                if (g->speed > 95.0)
+                    g->speed = 95.0;
             }
         } 
         else {
             if (!g->control) {
-                g->speed -= 12*(1.1 - 1.0*g->shift)*dt;
+                g->speed -= 16*(1.1 - 1.0*g->shift)*dt;
 ;
                 if (g->speed < 30.0)
                     g->speed = 30.0;

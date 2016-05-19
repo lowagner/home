@@ -86,27 +86,39 @@ void create_world1(int p, int q, world_func func, void *arg) {
 
 void biome0(int x, int z, int flag, world_func func, void *arg) {
     int lo = simplex2(x * 0.01, z * 0.01, 4, 0.5, 2) * 2 + 10;
-    int hi = simplex2(-x * 0.01, -z * 0.01, 4, 0.5, 2) * 2 + 12;
-    for (int y = 0; y < lo; y++) {
+    int y = 0;
+    for (; y < lo; y++) {
         func(x, y, z, (W) {.shape=S_CUBE*flag, .material=M_DIRT, .color=0, .action=0}.value, arg);
     }
-    for (int y = lo; y < hi; y++) {
+    for (; y < 12; y++) {
         func(x, y, z, (W) {.shape=S_CUBE*flag, .material=M_GRASS, .color=0, .action=0}.value, arg);
     }
-    float f = simplex2(-x * 0.1, z * 0.1, 4, 0.8, 2);
+    float f = simplex2(-x * 0.01, -z * 0.01, 4, 0.5, 2);
+    if (f > 0.5) {
+        if (f > 0.55) {
+            func(x, y, z, (W) {.shape=S_CUBE*flag, .material=M_GRASS, .color=0, .action=0}.value, arg);
+            ++y;
+        }
+        else {
+            func(x, y, z, (W) {.shape=S_HALF_NY*flag, .material=M_GRASS, .color=0, .action=0}.value, arg);
+            goto biome0_show_clouds;
+        }
+    }
+    f = simplex2(-x * 0.1, z * 0.1, 4, 0.8, 2);
     if (f < 0.2) {
         uint8_t lookup[] = {M_BRICK, M_YELLOW_FLOWER, 
             M_RED_FLOWER, M_PURPLE_FLOWER, M_SUN_FLOWER, M_WHITE_FLOWER, M_BLUE_FLOWER};
-        int i = simplex3(x * 0.5, hi * 0.5, z * 0.5, 3, 2.5, 5) * sizeof(lookup);
+        int i = simplex3(x * 0.5, y * 0.5, z * 0.5, 3, 2.5, 5) * sizeof(lookup);
         if (i == 0)  {
-            func(x, hi, z, (W) {.shape=S_CUBE*flag, .material=M_BRICK, .color=0, .action=0}.value, arg);
-            i = 1+simplex3(-x * 0.001, -hi * 0.001, -z * 0.001, 5, 0.5, 2) * (sizeof(lookup)-1);
-            func(x, hi+1, z, (W) {.shape=S_PLANT*flag, .material=lookup[i], .color=0, .action=0}.value, arg);
+            func(x, y, z, (W) {.shape=S_CUBE*flag, .material=M_BRICK, .color=0, .action=0}.value, arg);
+            i = 1+simplex3(-x * 0.001, -y * 0.001, -z * 0.001, 5, 0.5, 2) * (sizeof(lookup)-1);
+            func(x, y+1, z, (W) {.shape=S_PLANT*flag, .material=lookup[i], .color=0, .action=0}.value, arg);
         } else
-            func(x, hi, z, (W) {.shape=S_PLANT*flag, .material=lookup[i], .color=0, .action=0}.value, arg);
+            func(x, y, z, (W) {.shape=S_PLANT*flag, .material=lookup[i], .color=0, .action=0}.value, arg);
     } else if (f < 0.3) {
-        func(x, hi, z, (W) {.shape=S_PLANT*flag, .material=M_PLANT_GRASS, .color=0, .action=0}.value, arg);
+        func(x, y, z, (W) {.shape=S_PLANT*flag, .material=M_PLANT_GRASS, .color=0, .action=0}.value, arg);
     }
+    biome0_show_clouds:
     if (SHOW_CLOUDS) {
         for (int y = 50; y < 72; y++) {
             if (simplex3(
@@ -123,19 +135,36 @@ void biome1(int x, int z, int flag, world_func func, void *arg) {
     float f = simplex2(x * 0.01, z * 0.01, 4, 0.5, 2);
     float g = simplex2(-x * 0.01, -z * 0.01, 2, 0.9, 2);
     int mh = g * 32 + 16;
-    int h = f * mh;
+    int h = 2 * f * mh;
     unsigned int material = M_GRASS;
     int t = 12;
-    if (h <= t) {
-        h = t;
+    if (h/2 < t) {
+        // sand and dirt
+        int w = (W) {.shape = flag*S_CUBE, .material=M_DIRT, .color=0, .action=0}.value;
+        int y=0;
+        for (; y < h/2; y++) {
+            func(x, y, z, w, arg);
+        }
         material = M_SAND;
+        w = (W) {.shape = flag*S_CUBE, .material=material, .color=0, .action=0}.value;
+        for (; y < t; y++) {
+            func(x, y, z, w, arg);
+        }
     }
-    int w = (W) {.shape = flag*S_CUBE, .material=material, .color=0, .action=0}.value;
-    // sand and grass terrain
-    for (int y = 0; y < h; y++) {
-        func(x, y, z, w, arg);
+    else {
+        // grass hill
+        int w = (W) {.shape = flag*S_CUBE, .material=material, .color=0, .action=0}.value;
+        int y = 0;
+        for (; y < h/2; y++) {
+            func(x, y, z, w, arg);
+        }
+        if (h%2) {
+            w = (W) {.shape = flag*S_HALF_NY, .material=material, .color=0, .action=0}.value;
+            func(x, y, z, w, arg);
+        }
     }
-    if (material == M_GRASS) {
+    if (material == M_GRASS && (h % 2 == 0)) {
+        h /= 2;
         int ok = SHOW_TREES;
         if (SHOW_PLANTS) {
             // grass

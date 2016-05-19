@@ -420,24 +420,24 @@ void make_half_ny_faces(
         {0, 0, -1},
         {0, 0, +1}
     };
-    // keep bottom half of cube
-    static const float uvs[6][4][2] = {
-        {{UV_ZERO, UV_ZERO}, {UV_ONE, UV_ZERO}, {UV_ZERO, UV_HALF}, {UV_ONE, UV_HALF}},
-        {{UV_ONE, UV_ZERO}, {UV_ZERO, UV_ZERO}, {UV_ONE, UV_HALF}, {UV_ZERO, UV_HALF}},
-        {{UV_ZERO, UV_ONE}, {UV_ZERO, UV_ZERO}, {UV_ONE, UV_ONE}, {UV_ONE, UV_ZERO}},
-        {{UV_ZERO, UV_ZERO}, {UV_ZERO, UV_ONE}, {UV_ONE, UV_ZERO}, {UV_ONE, UV_ONE}},
-        {{UV_ONE, UV_ZERO}, {UV_ONE, UV_HALF}, {UV_ZERO, UV_ZERO}, {UV_ZERO, UV_HALF}},
-        {{UV_ZERO, UV_ZERO}, {UV_ZERO, UV_HALF}, {UV_ONE, UV_ZERO}, {UV_ONE, UV_HALF}}
-    };
-    // keep top half of cube
+    // keep bottom half of cube texture
     //static const float uvs[6][4][2] = {
-    //    {{UV_ZERO, UV_HALF}, {UV_ONE, UV_HALF}, {UV_ZERO, UV_ONE}, {UV_ONE, UV_ONE}},
-    //    {{UV_ONE, UV_HALF}, {UV_ZERO, UV_HALF}, {UV_ONE, UV_ONE}, {UV_ZERO, UV_ONE}},
+    //    {{UV_ZERO, UV_ZERO}, {UV_ONE, UV_ZERO}, {UV_ZERO, UV_HALF}, {UV_ONE, UV_HALF}},
+    //    {{UV_ONE, UV_ZERO}, {UV_ZERO, UV_ZERO}, {UV_ONE, UV_HALF}, {UV_ZERO, UV_HALF}},
     //    {{UV_ZERO, UV_ONE}, {UV_ZERO, UV_ZERO}, {UV_ONE, UV_ONE}, {UV_ONE, UV_ZERO}},
     //    {{UV_ZERO, UV_ZERO}, {UV_ZERO, UV_ONE}, {UV_ONE, UV_ZERO}, {UV_ONE, UV_ONE}},
-    //    {{UV_ONE, UV_HALF}, {UV_ONE, UV_ONE}, {UV_ZERO, UV_HALF}, {UV_ZERO, UV_ONE}},
-    //    {{UV_ZERO, UV_HALF}, {UV_ZERO, UV_ONE}, {UV_ONE, UV_HALF}, {UV_ONE, UV_ONE}}
+    //    {{UV_ONE, UV_ZERO}, {UV_ONE, UV_HALF}, {UV_ZERO, UV_ZERO}, {UV_ZERO, UV_HALF}},
+    //    {{UV_ZERO, UV_ZERO}, {UV_ZERO, UV_HALF}, {UV_ONE, UV_ZERO}, {UV_ONE, UV_HALF}}
     //};
+    // keep top half of cube texture
+    static const float uvs[6][4][2] = {
+        {{UV_ZERO, UV_HALF}, {UV_ONE, UV_HALF}, {UV_ZERO, UV_ONE}, {UV_ONE, UV_ONE}},
+        {{UV_ONE, UV_HALF}, {UV_ZERO, UV_HALF}, {UV_ONE, UV_ONE}, {UV_ZERO, UV_ONE}},
+        {{UV_ZERO, UV_ONE}, {UV_ZERO, UV_ZERO}, {UV_ONE, UV_ONE}, {UV_ONE, UV_ZERO}},
+        {{UV_ZERO, UV_ZERO}, {UV_ZERO, UV_ONE}, {UV_ONE, UV_ZERO}, {UV_ONE, UV_ONE}},
+        {{UV_ONE, UV_HALF}, {UV_ONE, UV_ONE}, {UV_ZERO, UV_HALF}, {UV_ZERO, UV_ONE}},
+        {{UV_ZERO, UV_HALF}, {UV_ZERO, UV_ONE}, {UV_ONE, UV_HALF}, {UV_ONE, UV_ONE}}
+    };
     static const float indices[6][6] = {
         {0, 3, 2, 0, 1, 3},
         {0, 3, 1, 0, 2, 3},

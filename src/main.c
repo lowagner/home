@@ -147,6 +147,7 @@ typedef struct {
     int M_last_pressed;
     int shift, control;
     float remove_blocks;
+    float speed;
     int scale;
     int ortho;
     float fov;
@@ -952,6 +953,7 @@ int collide(int height, float *x, float *y, float *z) {
         *y = cy - COLLISION_PAD - push;
         result = 1;
     }
+    // TODO:  reduce player speed when hitting stuff
     for (; dy < height-1; dy++) {
         if (fx < -COLLISION_PAD) { // && is_obstacle((W){.value=map_get(map, cx - 1, cy - dy, cz)}, D_PX)) {
             push = collide_px((W){.value=map_get(map, cx - 1, cy - dy, cz)}, fx, fy, fz);
@@ -2841,10 +2843,35 @@ void handle_movement(double dt) {
         float m = dt * 1.5;
         g->ortho = glfwGetKey(g->window, CRAFT_KEY_ORTHO) ? 64 : 0;
         g->fov = glfwGetKey(g->window, CRAFT_KEY_ZOOM) ? 15 : 60;
-        if (glfwGetKey(g->window, CRAFT_KEY_FORWARD)) sz--;
-        if (glfwGetKey(g->window, CRAFT_KEY_BACKWARD)) sz++;
-        if (glfwGetKey(g->window, CRAFT_KEY_LEFT)) sx--;
-        if (glfwGetKey(g->window, CRAFT_KEY_RIGHT)) sx++;
+        int moving = 0;
+        if (glfwGetKey(g->window, CRAFT_KEY_FORWARD)) {
+            sz--; moving = 1;
+        }
+        if (glfwGetKey(g->window, CRAFT_KEY_BACKWARD)) {
+            sz++; moving = 1;
+        }
+        if (glfwGetKey(g->window, CRAFT_KEY_LEFT)) {
+            sx--; moving = 1;
+        }
+        if (glfwGetKey(g->window, CRAFT_KEY_RIGHT)) {
+            sx++; moving = 1;
+        }
+        if (moving) {
+            if (!g->control) {
+                g->speed += 5*(0.25 + 1.0*g->shift)*dt;
+                if (g->speed > 100.0)
+                    g->speed = 100.0;
+            }
+        } 
+        else {
+            if (!g->control) {
+                g->speed -= 12*(1.1 - 1.0*g->shift)*dt;
+;
+                if (g->speed < 30.0)
+                    g->speed = 30.0;
+            }
+
+        }
         if (glfwGetKey(g->window, GLFW_KEY_LEFT)) s->rx -= m;
         if (glfwGetKey(g->window, GLFW_KEY_RIGHT)) s->rx += m;
         if (glfwGetKey(g->window, GLFW_KEY_UP)) s->ry += m;
@@ -2854,8 +2881,11 @@ void handle_movement(double dt) {
     get_motion_vector(g->flying, sz, sx, s->rx, s->ry, &vx, &vy, &vz);
     if (!g->typing) {
         if (glfwGetKey(g->window, CRAFT_KEY_JUMP)) {
-            if (g->flying || in_water) {
+            if (g->flying) {
                 vy = 1;
+            }
+            else if (in_water) {
+                vy = 0.5;
             }
             else if (dy == 0) {
                 dy = 8 + (6-2*g->control)*g->shift;
@@ -2864,18 +2894,18 @@ void handle_movement(double dt) {
         else if (in_water && !g->flying)
             vy = -0.1; // what are you sinking about
     }
-    float speed;
-    if (g->shift) {
-        speed = g->flying ? 62 : 28;
+    float speed = g->speed;
+    if (!g->flying) {
+        speed /= 1.5;
     }
-    else {
-        speed = g->flying ? 32 : 8;
+    if (!g->shift) {
+        speed /= 2.5;
     }
     if (g->control) {
-        speed /= 2;
+        speed /= 3;
     }
     if (in_water) {
-        speed /= 2;
+        speed /= 2.5;
     }
     int estimate = roundf(sqrtf(
         powf(vx * speed, 2) +
@@ -3226,6 +3256,7 @@ int main(int argc, char **argv) {
         me->name[0] = '\0';
         me->buffer = 0;
         g->player_count = 1;
+        g->speed = 30;
 
         // LOAD STATE FROM DATABASE //
         int loaded = db_load_state(&s->x, &s->y, &s->z, &s->rx, &s->ry);

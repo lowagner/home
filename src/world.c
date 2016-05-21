@@ -153,13 +153,21 @@ void biome1(int x, int z, int flag, world_func func, void *arg) {
     }
     else {
         // grass hill
-        int w = (W) {.shape = flag*S_CUBE, .material=material, .color=0, .action=0}.value;
-        int y = 0;
-        for (; y < h/2; y++) {
+        int w = (W) {.shape = flag*S_CUBE, .material=M_DIRT, .color=0, .action=0}.value;
+        if (h%2) { // a half-step hill
+            int y = 0;
+            for (; y < h/2; y++) {
+                func(x, y, z, w, arg);
+            }
+            w = (W) {.shape = flag*S_HALF_NY, .material=material, .color=0, .action=0}.value;
             func(x, y, z, w, arg);
         }
-        if (h%2) {
-            w = (W) {.shape = flag*S_HALF_NY, .material=material, .color=0, .action=0}.value;
+        else { // a full step hill
+            int y = 0;
+            for (; y < h/2-1; y++) {
+                func(x, y, z, w, arg);
+            }
+            w = (W) {.shape = flag*S_CUBE, .material=material, .color=0, .action=0}.value;
             func(x, y, z, w, arg);
         }
     }

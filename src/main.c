@@ -2843,35 +2843,26 @@ void handle_movement(double dt) {
         float m = dt * 1.5;
         g->ortho = glfwGetKey(g->window, CRAFT_KEY_ORTHO) ? 64 : 0;
         g->fov = glfwGetKey(g->window, CRAFT_KEY_ZOOM) ? 15 : 60;
-        int moving = 0;
         if (glfwGetKey(g->window, CRAFT_KEY_FORWARD)) {
-            sz--; moving = 1;
-        }
-        if (glfwGetKey(g->window, CRAFT_KEY_BACKWARD)) {
-            sz++; moving = 1;
-        }
-        if (glfwGetKey(g->window, CRAFT_KEY_LEFT)) {
-            sx--; moving = 1;
-        }
-        if (glfwGetKey(g->window, CRAFT_KEY_RIGHT)) {
-            sx++; moving = 1;
-        }
-        if (moving) {
+            // accelerate only if pushing forward
+            sz--; 
             if (!g->control) {
                 g->speed += 2*(0.25 + 1.0*g->shift)*dt;
                 if (g->speed > 95.0)
                     g->speed = 95.0;
             }
         } 
-        else {
+        else { // if not pushing forward, decelerate
             if (!g->control) {
                 g->speed -= 16*(1.1 - 1.0*g->shift)*dt;
 ;
                 if (g->speed < 30.0)
                     g->speed = 30.0;
             }
-
         }
+        if (glfwGetKey(g->window, CRAFT_KEY_BACKWARD)) sz++;
+        if (glfwGetKey(g->window, CRAFT_KEY_LEFT)) sx--;
+        if (glfwGetKey(g->window, CRAFT_KEY_RIGHT)) sx++;
         if (glfwGetKey(g->window, GLFW_KEY_LEFT)) s->rx -= m;
         if (glfwGetKey(g->window, GLFW_KEY_RIGHT)) s->rx += m;
         if (glfwGetKey(g->window, GLFW_KEY_UP)) s->ry += m;

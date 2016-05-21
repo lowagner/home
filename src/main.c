@@ -145,7 +145,6 @@ typedef struct {
     W M[10][2]; // mouse block brushes
     int M_index;
     int M_last_pressed;
-    int shift, control;
     float remove_blocks;
     float speed;
     int scale;
@@ -2639,30 +2638,12 @@ void on_key(GLFWwindow *window, int key, int scancode, int action, int mods) {
         if (key == CRAFT_KEY_REMOVE_BLOCK) {
             g->remove_blocks = 0;
         } 
-        else switch (key) {
-            case GLFW_KEY_LEFT_SHIFT:
-            case GLFW_KEY_RIGHT_SHIFT:
-                g->shift = 0;
-                break;
-            case GLFW_KEY_LEFT_CONTROL:
-            case GLFW_KEY_RIGHT_CONTROL:
-                g->control = 0;
-                break;
-        }
         return;
     }
     if (action != GLFW_PRESS) {
         return;
     }
     switch (key) {
-        case GLFW_KEY_LEFT_SHIFT:
-        case GLFW_KEY_RIGHT_SHIFT:
-            g->shift = 1;
-            return;
-        case GLFW_KEY_LEFT_CONTROL:
-        case GLFW_KEY_RIGHT_CONTROL:
-            g->control = 1;
-            return;
         case GLFW_KEY_ESCAPE:
             if (exclusive) {
                 glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
@@ -2826,6 +2807,8 @@ void handle_movement(double dt) {
     State *s = &g->players->state;
     int sz = 0;
     int sx = 0;
+    int shift = glfwGetKey(g->window, GLFW_KEY_LEFT_SHIFT);
+    int control = glfwGetKey(g->window, GLFW_KEY_LEFT_CONTROL);
     int in_water = 0; // movement slowed because of being in water
     if (PLAYER_HEIGHT > 1) {
         // view garbled because of being under water:
@@ -2846,15 +2829,15 @@ void handle_movement(double dt) {
         if (glfwGetKey(g->window, CRAFT_KEY_FORWARD)) {
             // accelerate only if pushing forward
             sz--; 
-            if (!g->control) {
-                g->speed += 2*(0.25 + 1.0*g->shift)*dt;
+            if (!control) {
+                g->speed += 2*(0.25 + 1.0*shift)*dt;
                 if (g->speed > 95.0)
                     g->speed = 95.0;
             }
         } 
         else { // if not pushing forward, decelerate
-            if (!g->control) {
-                g->speed -= 16*(1.1 - 1.0*g->shift)*dt;
+            if (!control) {
+                g->speed -= 16*(1.1 - 1.0*shift)*dt;
 ;
                 if (g->speed < 30.0)
                     g->speed = 30.0;
@@ -2879,7 +2862,7 @@ void handle_movement(double dt) {
                 vy = 0.5;
             }
             else if (dy == 0) {
-                dy = 8 + (6-2*g->control)*g->shift;
+                dy = 8 + (6-2*control)*shift;
             }
         }
         else if (in_water && !g->flying)
@@ -2889,10 +2872,10 @@ void handle_movement(double dt) {
     if (!g->flying) {
         speed /= 1.5;
     }
-    if (!g->shift) {
+    if (!shift) {
         speed /= 2.5;
     }
-    if (g->control) {
+    if (control) {
         speed /= 3;
     }
     if (in_water) {

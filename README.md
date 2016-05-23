@@ -2,7 +2,7 @@
 
 Minecraft clone for Windows, Mac OS X and Linux. Just a few thousand lines of C using modern OpenGL (shaders). Online multiplayer support is currently borked (go to fogleman's repository for something functional, and see http://www.michaelfogleman.com/craft/).
 
-There's support for changing colors of non-cloud blocks (use C or Shift+C to cycle forward or backward):
+There's support for changing colors of blocks (use C or Shift+C to cycle forward or backward, and Control+C or Control+Shift+C to cycle slowly forward/backward).
 
 ![Screenshot](https://raw.githubusercontent.com/lowagner/home/master/ColoredBlocks.png)
 

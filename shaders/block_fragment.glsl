@@ -61,6 +61,12 @@ void main() {
             if (bool(ortho)) {
                 discard;
             }
+            vec3 fragment_HSV = vec3(1);
+            fragment_HSV.x = mod(fragment_HSV.x + fragment_glaze.x, 1.0);
+            fragment_HSV.yz *= fragment_glaze.yz;
+            fragment_HSV.y *= (0.2+0.8*daylight); // desaturate at night
+            fragment_HSV.yz = clamp(fragment_HSV.yz, vec2(0.0), vec2(1.0));
+            color = hsv2rgb(fragment_HSV);
         }
         else if (color == vec3(1.0, 0.0, 1.0)) {
             discard;

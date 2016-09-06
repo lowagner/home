@@ -2554,7 +2554,18 @@ void rotate_item(int dir, int shift, int control) {
     //g->debug = 0;
     if (w.value == 0)
         return;
-    printf("need to rotate the object with w=%d\n",w.value);
+    if (w.shape < 0 || w.shape >= 124) {
+        printf("shape was negative or weird: %d\n", w.shape);
+        return;
+    }
+    w.shape += dir*(1-2*shift)*(4 - 3*control);
+    if (w.shape <= 0)
+        w.shape += 123;
+    else if (w.shape >= 124)
+        w.shape -= 123;
+    printf("new shape is %d\n", w.shape);
+    set_block(hx, hy, hz, w);
+    record_block(hx, hy, hz, w);
 }
 
 void rotate_color(int shift, int control) {

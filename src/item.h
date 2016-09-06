@@ -17,12 +17,11 @@
 #define S_HALF_PY 2 // Positive Y
 #define S_HALF_NY 3 // Negative Y
 // thin shapes
-#define S_CENTER_X 4 // half a cube centered going along x
-#define S_CENTER_Z 5
-#define S_HALF_PX 6
-#define S_HALF_PZ 7
-#define S_HALF_NX 8
-#define S_HALF_NZ 9
+#define S_CROSS 4 // a sphere or a cross or something else invariant with rotations about Y
+#define S_HALF_PX 5
+#define S_HALF_PZ 6
+#define S_HALF_NX 7
+#define S_HALF_NZ 8
 // slats
 #define S_FENCEY_X 10 // slats going in y dir, along x
 #define S_FENCEY_Z 11

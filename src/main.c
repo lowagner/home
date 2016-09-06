@@ -727,6 +727,7 @@ float foot_collide_px(W w, float fx, float fy, float fz)
     {
         case S_CUBE:
         case S_HALF_PY:
+        case S_HALF_PX:
             return 0.5;
     }
     return -1;
@@ -756,6 +757,9 @@ float foot_collide_py(W w, float fx, float fy, float fz)
         case S_CUBE:
         case S_HALF_PY:
             return 0.5;
+        case S_HALF_PX:
+            if (fx > -COLLISION_PAD)
+                return 0.5;
     }
     return -1;
 }
@@ -770,6 +774,9 @@ float foot_collide_ny(W w, float fx, float fy, float fz)
         case S_CUBE:
         case S_HALF_NY:
             return 0.5;
+        case S_HALF_PX:
+            if (fx > -COLLISION_PAD)
+                return 0.5;
     }
     return -1;
 }
@@ -784,6 +791,9 @@ float foot_collide_pz(W w, float fx, float fy, float fz)
         case S_CUBE:
         case S_HALF_PY:
             return 0.5;
+        case S_HALF_PX:
+            if (fx > -COLLISION_PAD)
+                return 0.5;
     }
     return -1;
 }
@@ -798,6 +808,9 @@ float foot_collide_nz(W w, float fx, float fy, float fz)
         case S_CUBE:
         case S_HALF_PY:
             return 0.5;
+        case S_HALF_PX:
+            if (fx > -COLLISION_PAD)
+                return 0.5;
     }
     return -1;
 }
@@ -812,6 +825,7 @@ float collide_px(W w, float fx, float fy, float fz)
         case S_CUBE:
         case S_HALF_PY:
         case S_HALF_NY:
+        case S_HALF_PX:
             return 0.5;
     }
     return -1;
@@ -842,9 +856,9 @@ float collide_py(W w, float fx, float fy, float fz)
         case S_CUBE:
         case S_HALF_PY:
             return 0.5;
-        //case S_HALF_NY:
-        //    if (fy < -0.5 + COLLISION_PAD)
-        //        return -0.5 + COLLISION_PAD;
+        case S_HALF_PX:
+            if (fx > -COLLISION_PAD)
+                return 0.5;
     }
     return -1;
 }
@@ -865,6 +879,9 @@ float foot_collide(W w, float fx, float fy, float fz)
             if (fy > -COLLISION_PAD)
                 return 0.5;
             break;
+        case S_HALF_PX:
+            if (fx > -COLLISION_PAD)
+                return 1.0;
     }
     return -1;
 }
@@ -882,6 +899,9 @@ float head_collide(W w, float fx, float fy, float fz)
         case S_HALF_PY:
             if (fy > -COLLISION_PAD)
                 return 0;
+        case S_HALF_PX:
+            if (fx > -COLLISION_PAD)
+                return 1.0;
     }
     return -1;
 }
@@ -993,7 +1013,8 @@ int collide(int height, float *x, float *y, float *z) {
     }
     push = foot_collide((W){.value=map_get(map, cx, cy - dy, cz)}, fx, fy, fz);
     if (push >= 0) {
-        *y = cy + COLLISION_PAD + push;
+        if (push < 1)
+            *y = cy + COLLISION_PAD + push;
         return 1;
     }
     if (fx < -COLLISION_PAD) { // && is_obstacle((W){.value=map_get(map, cx - 1, cy - dy, cz)}, D_PX)) {
@@ -1263,6 +1284,8 @@ static int count_item_faces(int fnx, int fpx, int fpy, int fny, int fnz, int fpz
             return fnx + fpx + 1 + fny + fnz + fpz;
         case S_HALF_PY:
             return fnx + fpx + fpy + 1 + fnz + fpz;
+        case S_HALF_PX:
+            return 1 + fpx + fpy + fny + fnz + fpz;
     }
     return 0; 
 }
@@ -1314,6 +1337,14 @@ static int add_item_faces(float *data, float ao[6][4], float light[6][4],
                 fnx, fpx, fpy, 1, fnz, fpz,
                 ex, ey+0.5, ez, n, ew);
             return fnx + fpx + fpy + 1 + fnz + fpz;
+        }
+        case S_HALF_PX:
+        {
+            make_half_px(
+                data, ao, light,
+                1, fpx, fpy, fny, fnz, fpz,
+                ex, ey, ez, n, ew);
+            return 1 + fpx + fpy + fny + fnz + fpz;
         }
     }
     return 0; //fnx+fpx+fpy+fny+fnz+fpz;
@@ -2546,6 +2577,23 @@ void on_click(int mouse_button, int control) {
     }
 }
 
+int match_mouse(W w) {
+    if (g->M[g->M_index][0].value != g->M[g->M_index][1].value) {
+        if (w.value == g->M[g->M_index][0].value) {
+            return 0;
+        } 
+        else if (w.value == g->M[g->M_index][1].value) {
+            return 1;
+        }
+    } 
+    else {
+        if (w.value == g->M[g->M_index][0].value) {
+            return g->M_last_pressed;
+        } 
+    }
+    return -1;
+}
+
 void rotate_item(int dir, int shift, int control) {
     State *s = &g->players->state;
     int hx, hy, hz;
@@ -2558,6 +2606,8 @@ void rotate_item(int dir, int shift, int control) {
         printf("shape was negative or weird: %d\n", w.shape);
         return;
     }
+    
+    int match = match_mouse(w);
     w.shape += dir*(1-2*shift)*(4 - 3*control);
     if (w.shape <= 0)
         w.shape += 123;
@@ -2565,7 +2615,8 @@ void rotate_item(int dir, int shift, int control) {
         w.shape -= 123;
     printf("new shape is %d\n", w.shape);
     set_block(hx, hy, hz, w);
-    record_block(hx, hy, hz, w);
+    if (match >= 0)
+        g->M[g->M_index][match] = w;
 }
 
 void rotate_color(int shift, int control) {
@@ -2577,20 +2628,7 @@ void rotate_color(int shift, int control) {
     if (w.value == 0)
         return;
     // check and see if it matches one the current mouse brush:
-    int match = -1;
-    if (g->M[g->M_index][0].value != g->M[g->M_index][1].value) {
-        if (w.value == g->M[g->M_index][0].value) {
-            match = 0;
-        } 
-        else if (w.value == g->M[g->M_index][1].value) {
-            match = 1;
-        }
-    } 
-    else {
-        if (w.value == g->M[g->M_index][0].value) {
-            match = g->M_last_pressed;
-        } 
-    }
+    int match = match_mouse(w);
     // update color
     w.color = ((w.color + (1-2*shift)*(3-2*control))&127) | (128 & w.color); 
     set_block(hx, hy, hz, w);

@@ -6,8 +6,7 @@ const int shapes[] = {
     S_CUBE,
     S_HALF_PY, // Positive Y
     S_HALF_NY, // Negative Y
-    S_CENTER_X,
-    S_CENTER_Z,
+    S_CROSS,
     S_HALF_PX,
     S_HALF_PZ,
     S_HALF_NX,

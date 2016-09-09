@@ -80,8 +80,6 @@ typedef union {
     };
 } W;
 
-extern const int shapes[];
-extern const int shape_count;
 extern const int block_textures[256][6];
 extern const int plant_textures[256];
 

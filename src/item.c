@@ -1,20 +1,6 @@
 #include "item.h"
 #include "util.h"
 
-const int shapes[] = {
-    // items the user can build
-    S_CUBE,
-    S_HALF_PY, // Positive Y
-    S_HALF_NY, // Negative Y
-    S_CROSS,
-    S_HALF_PX,
-    S_HALF_PZ,
-    S_HALF_NX,
-    S_HALF_NZ,
-};
-
-const int shape_count = sizeof(shapes) / sizeof(int);
-
 const int block_textures[256][6] = {
     // w => (left, right, top, bottom, front, back) tiles
     {255,255,255,255,255,255},

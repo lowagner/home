@@ -46,6 +46,11 @@
 #define CRAFT_KEY_COMMAND '/'
 #define CRAFT_KEY_SIGN '`'
 
+// player options
+#define PLAYER_HEIGHT 2
+#define MAX_NAME_LENGTH 32
+#define MAX_PLAYERS 128
+
 // advanced parameters
 #define CREATE_CHUNK_RADIUS 6
 #define RENDER_CHUNK_RADIUS 6

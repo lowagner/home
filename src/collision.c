@@ -92,6 +92,7 @@ int foot_collide_nx(W w, float fx, float fy, float fz, float cx, float *x)
     switch (shape) {
         case S_CUBE:
         case S_HALF_PY:
+        case S_HALF_NX:
             *x = x0;
             return 1;
         case S_HALF_PZ:
@@ -124,6 +125,12 @@ int foot_collide_py(W w, float fx, float fy, float fz, float cy, float *y)
             return 2;
         case S_HALF_PX:
             if (fx > -COLLISION_PAD) {
+                *y = y0; 
+                return 2;
+            }
+            return 0;
+        case S_HALF_NX:
+            if (fx < COLLISION_PAD) {
                 *y = y0; 
                 return 2;
             }
@@ -198,6 +205,12 @@ int foot_collide_pz(W w, float fx, float fy, float fz, float cz, float *z)
                 return 4;
             }
             return 0;
+        case S_HALF_NX:
+            if (fx < COLLISION_PAD) {
+                *z = z0;
+                return 4;
+            }
+            return 0;
     }
     return 0;
 }
@@ -216,6 +229,12 @@ int foot_collide_nz(W w, float fx, float fy, float fz, float cz, float *z)
             return 4;
         case S_HALF_PX:
             if (fx > -COLLISION_PAD) {
+                *z = z0;
+                return 4;
+            }
+            return 0;
+        case S_HALF_NX:
+            if (fx < COLLISION_PAD) {
                 *z = z0;
                 return 4;
             }

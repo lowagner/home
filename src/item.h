@@ -16,17 +16,26 @@
 #define S_CUBE 1
 #define S_HALF_PY 2 // Positive Y
 #define S_HALF_NY 3 // Negative Y
-// thin shapes
 #define S_CROSS 4 // a sphere or a cross or something else invariant with rotations about Y
-#define S_HALF_PX 5
-#define S_HALF_PZ 6
-#define S_HALF_NX 7
-#define S_HALF_NZ 8
-// slats
-#define S_FENCEY_X 10 // slats going in y dir, along x
-#define S_FENCEY_Z 11
-#define S_FENCE_X 12 // slats going along x dir
-#define S_FENCE_Z 13 // slats going along x dir
+// stair shapes
+#define S_STAIR_PX 5
+#define S_STAIR_PZ 6
+#define S_STAIR_NX 7
+#define S_STAIR_NZ 8
+// wall shapes
+#define S_HALF_PX 9
+#define S_HALF_PZ 10
+#define S_HALF_NX 11
+#define S_HALF_NZ 12
+#define S_L_LPXPZ 13
+#define S_L_LNXPZ 14
+#define S_L_LNXNZ 15
+#define S_L_PXNZ 16
+// fence/window things (centered)
+#define S_FENCE_X 17
+#define S_FENCE_Z 18
+#define S_FENCEY_X 19 // vertical slats, along x
+#define S_FENCEY_Z 20
 // can add a few here before the plants at 127:
 #define S_PLANT 127
 // don't add any other shapes after 127.

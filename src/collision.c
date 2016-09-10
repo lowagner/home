@@ -491,12 +491,12 @@ int collide(int height, float *x, float *y, float *z) {
         result |= head_hit;
     }
     for (; dy < height-1; dy++) {
-        if (dy == 0) {
-            head_hit |= body_collide((W){.value=map_get(map, cx, cy, cz)}, fx, fy, fz, cx, cy, cz, x, y, z);
-            result |= head_hit;
-        }
-        else {
-            result |= body_collide((W){.value=map_get(map, cx, cy - dy, cz)}, fx, fy, fz, cx, cy, cz, x, y, z);
+        int body_hit = body_collide((W){.value=map_get(map, cx, cy, cz)}, fx, fy, fz, cx, cy, cz, x, y, z);
+        if (body_hit) {
+            if (dy == 0)
+                head_hit |= body_hit;
+            result |= body_hit;
+            continue;
         }
 
         if (fx < -COLLISION_PAD)
@@ -518,7 +518,8 @@ int collide(int height, float *x, float *y, float *z) {
     when walking up a slope into a ceiling, your head can poke through.  ouch!
     make sure this "return 8;" thing works.
     */
-    if (fy < COLLISION_PAD-0.01) { 
+    int foot_hit = foot_collide((W){.value=map_get(map, cx, cy - dy, cz)}, fx, fy, fz, cx, cy, cz, x, y, z);
+    if (fy < COLLISION_PAD-0.01 && !foot_hit) { 
         // don't collide feet with nearby objects unless we're far enough down;
         // this allows us to step over some objects without jumping.
         if (fx < -COLLISION_PAD)
@@ -534,7 +535,6 @@ int collide(int height, float *x, float *y, float *z) {
         else if (fz > COLLISION_PAD)
             result |= foot_collide_nz((W){.value=map_get(map, cx, cy - dy, cz + 1)}, fx, fy, fz, cz, z);
     }
-    int foot_hit = foot_collide((W){.value=map_get(map, cx, cy - dy, cz)}, fx, fy, fz, cx, cy, cz, x, y, z);
     if ((head_hit & 2) && (foot_hit & 2)) {
         // this looks bad, may have hit our head and foot somewhere
         printf("ouch\n");

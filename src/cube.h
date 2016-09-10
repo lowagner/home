@@ -59,4 +59,14 @@ void make_half_nz(
     int left, int right, int top, int bottom, int front, int back,
     float x, float y, float z, float n, W w);
 
+void make_fence_x(
+    float *data, float ao[6][4], float light[6][4],
+    int left, int right, int top, int bottom, int front, int back,
+    float x, float y, float z, float n, W w);
+
+void make_fence_z(
+    float *data, float ao[6][4], float light[6][4],
+    int left, int right, int top, int bottom, int front, int back,
+    float x, float y, float z, float n, W w);
+
 #endif

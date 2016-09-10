@@ -49,4 +49,14 @@ void make_half_nx(
     int left, int right, int top, int bottom, int front, int back,
     float x, float y, float z, float n, W w);
 
+void make_half_pz(
+    float *data, float ao[6][4], float light[6][4],
+    int left, int right, int top, int bottom, int front, int back,
+    float x, float y, float z, float n, W w);
+
+void make_half_nz(
+    float *data, float ao[6][4], float light[6][4],
+    int left, int right, int top, int bottom, int front, int back,
+    float x, float y, float z, float n, W w);
+
 #endif

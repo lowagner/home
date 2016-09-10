@@ -450,6 +450,7 @@ int collide_nz(W w, float fx, float fy, float fz, float cz, float *z)
         case S_CUBE:
         case S_HALF_PY:
         case S_HALF_NY:
+        case S_HALF_NZ:
             *z = z0;
             return 4;
         case S_HALF_PX:

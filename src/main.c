@@ -903,6 +903,10 @@ static int count_item_faces(int fnx, int fpx, int fpy, int fny, int fnz, int fpz
             return 1 + fpx + fpy + fny + fnz + fpz;
         case S_HALF_NX:
             return fnx + 1 + fpy + fny + fnz + fpz;
+        case S_HALF_PZ:
+            return fnx + fpx + fpy + fny + 1 + fpz;
+        case S_HALF_NZ:
+            return fnx + fpx + fpy + fny + fnz + 1;
     }
     return 0; 
 }
@@ -970,6 +974,22 @@ static int add_item_faces(float *data, float ao[6][4], float light[6][4],
                 fnx, 1, fpy, fny, fnz, fpz,
                 ex, ey, ez, n, ew);
             return fnx + 1 + fpy + fny + fnz + fpz;
+        }
+        case S_HALF_PZ:
+        {
+            make_half_pz(
+                data, ao, light,
+                fnx, fpx, fpy, fny, 1, fpz,
+                ex, ey, ez, n, ew);
+            return fnx + fpx + fpy + fny + 1 + fpz;
+        }
+        case S_HALF_NZ:
+        {
+            make_half_nz(
+                data, ao, light,
+                fnx, fpx, fpy, fny, fnz, 1,
+                ex, ey, ez, n, ew);
+            return fnx + fpx + fpy + fny + fnz + 1;
         }
     }
     return 0; //fnx+fpx+fpy+fny+fnz+fpz;

@@ -61,7 +61,7 @@ int foot_collide(W w, float fx, float fy, float fz, float cx, float cy, float cz
             }
             else {
                 if (fz > -0.25 - 0.9*COLLISION_PAD) {
-                    *z = cz - 0.25 - COLLISION_PAD;
+                    *z = cz - 0.251 - COLLISION_PAD;
                     return 4;
                 }
             }
@@ -69,7 +69,7 @@ int foot_collide(W w, float fx, float fy, float fz, float cx, float cy, float cz
         case S_FENCE_Z:
             if (fx > 0) {
                 if (fx < 0.25 + 0.9*COLLISION_PAD) {
-                    *x = cx + 0.25 + COLLISION_PAD;
+                    *x = cx + 0.251 + COLLISION_PAD;
                     return 1;
                 }
             }
@@ -322,7 +322,7 @@ int body_collide(W w, float fx, float fy, float fz, float cx, float cy, float cz
             }
             else {
                 if (fz > -0.25 - 0.9*COLLISION_PAD) {
-                    *z = cz - 0.25 - COLLISION_PAD;
+                    *z = cz - 0.251 - COLLISION_PAD;
                     return 4;
                 }
             }
@@ -330,7 +330,7 @@ int body_collide(W w, float fx, float fy, float fz, float cx, float cy, float cz
         case S_FENCE_Z:
             if (fx > 0) {
                 if (fx < 0.25 + 0.9*COLLISION_PAD) {
-                    *x = cx + 0.25 + COLLISION_PAD;
+                    *x = cx + 0.251 + COLLISION_PAD;
                     return 1;
                 }
             }

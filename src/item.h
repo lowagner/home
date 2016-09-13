@@ -18,7 +18,7 @@
 #define S_HALF_NY 3 // Negative Y
 #define S_CROSS 4 // a sphere or a cross or something else invariant with rotations about Y
 // stair shapes
-#define S_STAIR_PX 5
+#define S_STAIR_PX 5 // half-by-half step on -Y against +X
 #define S_STAIR_PZ 6
 #define S_STAIR_NX 7
 #define S_STAIR_NZ 8
@@ -27,10 +27,10 @@
 #define S_HALF_PZ 10
 #define S_HALF_NX 11
 #define S_HALF_NZ 12
-#define S_L_LPXPZ 13
-#define S_L_LNXPZ 14
-#define S_L_LNXNZ 15
-#define S_L_PXNZ 16
+#define S_PXPZ 13 // half-by-half post on +X +Z corner
+#define S_NXPZ 14
+#define S_NXNZ 15
+#define S_PXNZ 16
 // fence/window things (centered)
 #define S_FENCE_X 17
 #define S_FENCE_Z 18

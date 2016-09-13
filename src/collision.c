@@ -29,6 +29,38 @@ int foot_collide(W w, float fx, float fy, float fz, float cx, float cy, float cz
                 return 2;
             }
             return 0;
+        case S_STAIR_PX:
+            if (fx > -COLLISION_PAD) {
+                if (fy < COLLISION_PAD) {
+                    *y = cy + COLLISION_PAD;
+                    return 2;
+                }
+            }
+            return 0;
+        case S_STAIR_PZ:
+            if (fz > -COLLISION_PAD) {
+                if (fy < COLLISION_PAD) {
+                    *y = cy + COLLISION_PAD;
+                    return 2;
+                }
+            }
+            return 0;
+        case S_STAIR_NX:
+            if (fx < COLLISION_PAD) {
+                if (fy < COLLISION_PAD) {
+                    *y = cy + COLLISION_PAD;
+                    return 2;
+                }
+            }
+            return 0;
+        case S_STAIR_NZ:
+            if (fz < COLLISION_PAD) {
+                if (fy < COLLISION_PAD) {
+                    *y = cy + COLLISION_PAD;
+                    return 2;
+                }
+            }
+            return 0;
         case S_HALF_PX:
             if (fx > -COLLISION_PAD) {
                 *x = cx - COLLISION_PAD;
@@ -290,6 +322,30 @@ int body_collide(W w, float fx, float fy, float fz, float cx, float cy, float cz
                 return 2;
             }
             return 0;
+        case S_STAIR_PX:
+            if (fx > -COLLISION_PAD) {
+                *y = cy - COLLISION_PAD - 0.5;
+                return 2;
+            }
+            return 0;
+        case S_STAIR_PZ:
+            if (fz > -COLLISION_PAD) {
+                *y = cy - COLLISION_PAD - 0.5;
+                return 2;
+            }
+            return 0;
+        case S_STAIR_NX:
+            if (fx < COLLISION_PAD) {
+                *y = cy - COLLISION_PAD - 0.5;
+                return 2;
+            }
+            return 0;
+        case S_STAIR_NZ:
+            if (fz < COLLISION_PAD) {
+                *y = cy - COLLISION_PAD - 0.5;
+                return 2;
+            }
+            return 0;
         case S_HALF_PX:
             if (fx > -COLLISION_PAD) {
                 *x = cx - COLLISION_PAD;
@@ -356,16 +412,19 @@ int collide_px(W w, float fx, float fy, float fz, float cx, float *x)
         case S_CUBE:
         case S_HALF_PY:
         case S_HALF_NY:
+        case S_STAIR_PX:
         case S_HALF_PX:
             *x = x0;
             return 1;
         case S_HALF_PZ:
+        case S_STAIR_PZ:
             if (fz > -COLLISION_PAD) {
                 *x = x0;
                 return 1;
             }
             return 0;
         case S_HALF_NZ:
+        case S_STAIR_NZ:
             if (fz < COLLISION_PAD) {
                 *x = x0;
                 return 1;
@@ -391,14 +450,18 @@ int collide_nx(W w, float fx, float fy, float fz, float cx, float *x)
         case S_CUBE:
         case S_HALF_PY:
         case S_HALF_NY:
+        case S_STAIR_NX:
+        case S_HALF_PX:
             *x = x0;
             return 1;
+        case S_STAIR_PZ:
         case S_HALF_PZ:
             if (fz > -COLLISION_PAD) {
                 *x = x0;
                 return 1;
             }
             return 0;
+        case S_STAIR_NZ:
         case S_HALF_NZ:
             if (fz < COLLISION_PAD) {
                 *x = x0;
@@ -427,26 +490,28 @@ int collide_ny(W w, float fx, float fy, float fz, float cy, float *y)
         case S_HALF_NY:
             *y = y0; // push head down below this point
             return 2;
-        case S_HALF_PY:
-            return 0;
+        case S_STAIR_PX:
         case S_HALF_PX:
             if (fx > -COLLISION_PAD) {
                 *y = y0;
                 return 2;
             }
             return 0;
+        case S_STAIR_NX:
         case S_HALF_NX:
             if (fx < COLLISION_PAD) {
                 *y = y0;
                 return 2;
             }
             return 0;
+        case S_STAIR_PZ:
         case S_HALF_PZ:
             if (fz > -COLLISION_PAD) {
                 *y = y0;
                 return 2;
             }
             return 0;
+        case S_STAIR_NZ:
         case S_HALF_NZ:
             if (fz < COLLISION_PAD) {
                 *y = y0;
@@ -479,15 +544,18 @@ int collide_pz(W w, float fx, float fy, float fz, float cz, float *z)
         case S_CUBE:
         case S_HALF_PY:
         case S_HALF_NY:
+        case S_STAIR_PZ:
         case S_HALF_PZ:
             *z = z0;
             return 4;
+        case S_STAIR_PX:
         case S_HALF_PX:
             if (fx > -COLLISION_PAD) {
                 *z = z0;
                 return 4;
             }
             return 0;
+        case S_STAIR_NZ:
         case S_HALF_NX:
             if (fx < COLLISION_PAD) {
                 *z = z0;
@@ -514,15 +582,18 @@ int collide_nz(W w, float fx, float fy, float fz, float cz, float *z)
         case S_CUBE:
         case S_HALF_PY:
         case S_HALF_NY:
+        case S_STAIR_NZ:
         case S_HALF_NZ:
             *z = z0;
             return 4;
+        case S_STAIR_PX:
         case S_HALF_PX:
             if (fx > -COLLISION_PAD) {
                 *z = z0;
                 return 4;
             }
             return 0;
+        case S_STAIR_NX:
         case S_HALF_NX:
             if (fx < COLLISION_PAD) {
                 *z = z0;
@@ -583,7 +654,7 @@ int collide(int height, float *x, float *y, float *z) {
     /*
     TODO:
     when walking up a slope into a ceiling, your head can poke through.  ouch!
-    make sure this "return 8;" thing works.
+    also you can jump through holes that should be too small for you to fit through
     */
     int foot_hit = foot_collide((W){.value=map_get(map, cx, cy - dy, cz)}, fx, fy, fz, cx, cy, cz, x, y, z);
     if (fy < COLLISION_PAD-0.01 && !foot_hit) { 

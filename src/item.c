@@ -313,7 +313,7 @@ int is_plant(W w) {
 }
 
 int is_obstacle(W w, int dir) {
-    if (w.value == 0 || is_plant(w) || w.material == M_WATER) 
+    if (w.value == 1 || is_plant(w)) // || w.material == M_WATER) // include WATER to make building on water impossible
         return 0;
     if (w.material == M_CLOUD) {
         if (dir & D_PY)

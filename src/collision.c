@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #define COLLISION_PAD 0.25f
+#define COLLISION_CENTER_PAD (0.25f + 0.9f*COLLISION_PAD)
 
 void get_sight_vector(float rx, float ry, float *vx, float *vy, float *vz);
 
@@ -54,28 +55,28 @@ int foot_collide(W w, float fx, float fy, float fz, float cx, float cy, float cz
             return 0;
         case S_FENCE_X:
             if (fz > 0) {
-                if (fz < 0.25 + 0.9*COLLISION_PAD) {
-                    *z = cz + 0.25 + COLLISION_PAD;
+                if (fz < COLLISION_CENTER_PAD) {
+                    *z = cz + 0.5;
                     return 4;
                 }
             }
             else {
-                if (fz > -0.25 - 0.9*COLLISION_PAD) {
-                    *z = cz - 0.251 - COLLISION_PAD;
+                if (fz > -COLLISION_CENTER_PAD) {
+                    *z = cz - 0.501;
                     return 4;
                 }
             }
             return 0;
         case S_FENCE_Z:
             if (fx > 0) {
-                if (fx < 0.25 + 0.9*COLLISION_PAD) {
-                    *x = cx + 0.251 + COLLISION_PAD;
+                if (fx < COLLISION_CENTER_PAD) {
+                    *x = cx + 0.501;
                     return 1;
                 }
             }
             else {
-                if (fx > -0.25 - 0.9*COLLISION_PAD) {
-                    *x = cx - 0.25 - COLLISION_PAD;
+                if (fx > -COLLISION_CENTER_PAD) {
+                    *x = cx - 0.5;
                     return 1;
                 }
             }
@@ -109,7 +110,7 @@ int foot_collide_px(W w, float fx, float fy, float fz, float cx, float *x)
             }
             return 0;
         case S_FENCE_X:
-            if (fabs(fz) < 0.25 + 0.9*COLLISION_PAD) {
+            if (fabs(fz) < COLLISION_CENTER_PAD) {
                 *x = x0;
                 return 1;
             }
@@ -143,7 +144,7 @@ int foot_collide_nx(W w, float fx, float fy, float fz, float cx, float *x)
             }
             return 0;
         case S_FENCE_X:
-            if (fabs(fz) < 0.25 + 0.9*COLLISION_PAD) {
+            if (fabs(fz) < COLLISION_CENTER_PAD) {
                 *x = x0;
                 return 1;
             }
@@ -189,13 +190,13 @@ int foot_collide_py(W w, float fx, float fy, float fz, float cy, float *y)
             }
             return 0;
         case S_FENCE_X:
-            if (fabs(fz) < 0.25 + 0.9*COLLISION_PAD) {
+            if (fabs(fz) < COLLISION_CENTER_PAD) {
                 *y = y0;
                 return 2;
             }
             return 0;
         case S_FENCE_Z:
-            if (fabs(fx) < 0.25 + 0.9*COLLISION_PAD) {
+            if (fabs(fx) < COLLISION_CENTER_PAD) {
                 *y = y0;
                 return 2;
             }
@@ -229,7 +230,7 @@ int foot_collide_pz(W w, float fx, float fy, float fz, float cz, float *z)
             }
             return 0;
         case S_FENCE_Z:
-            if (fabs(fx) < 0.25 + 0.9*COLLISION_PAD) {
+            if (fabs(fx) < COLLISION_CENTER_PAD) {
                 *z = z0;
                 return 4;
             }
@@ -263,7 +264,7 @@ int foot_collide_nz(W w, float fx, float fy, float fz, float cz, float *z)
             }
             return 0;
         case S_FENCE_Z:
-            if (fabs(fx) < 0.25 + 0.9*COLLISION_PAD) {
+            if (fabs(fx) < COLLISION_CENTER_PAD) {
                 *z = z0;
                 return 4;
             }
@@ -315,28 +316,28 @@ int body_collide(W w, float fx, float fy, float fz, float cx, float cy, float cz
             return 0;
         case S_FENCE_X:
             if (fz > 0) {
-                if (fz < 0.25 + 0.9*COLLISION_PAD) {
-                    *z = cz + 0.25 + COLLISION_PAD;
+                if (fz < COLLISION_CENTER_PAD) {
+                    *z = cz + 0.5;
                     return 4;
                 }
             }
             else {
-                if (fz > -0.25 - 0.9*COLLISION_PAD) {
-                    *z = cz - 0.251 - COLLISION_PAD;
+                if (fz > -COLLISION_CENTER_PAD) {
+                    *z = cz - 0.501;
                     return 4;
                 }
             }
             return 0;
         case S_FENCE_Z:
             if (fx > 0) {
-                if (fx < 0.25 + 0.9*COLLISION_PAD) {
-                    *x = cx + 0.251 + COLLISION_PAD;
+                if (fx < COLLISION_CENTER_PAD) {
+                    *x = cx + 0.501; // very weird, but necessary...
                     return 1;
                 }
             }
             else {
-                if (fx > -0.25 - 0.9*COLLISION_PAD) {
-                    *x = cx - 0.25 - COLLISION_PAD;
+                if (fx > -COLLISION_CENTER_PAD) {
+                    *x = cx - 0.5;
                     return 1;
                 }
             }
@@ -371,7 +372,7 @@ int collide_px(W w, float fx, float fy, float fz, float cx, float *x)
             }
             return 0;
         case S_FENCE_X:
-            if (fabs(fz) < 0.25 + 0.9*COLLISION_PAD) {
+            if (fabs(fz) < COLLISION_CENTER_PAD) {
                 *x = x0;
                 return 1;
             }
@@ -405,7 +406,7 @@ int collide_nx(W w, float fx, float fy, float fz, float cx, float *x)
             }
             return 0;
         case S_FENCE_X:
-            if (fabs(fz) < 0.25 + 0.9*COLLISION_PAD) {
+            if (fabs(fz) < COLLISION_CENTER_PAD) {
                 *x = x0;
                 return 1;
             }
@@ -453,13 +454,13 @@ int collide_ny(W w, float fx, float fy, float fz, float cy, float *y)
             }
             return 0;
         case S_FENCE_X:
-            if (fabs(fz) < 0.25 + 0.9*COLLISION_PAD) {
+            if (fabs(fz) < COLLISION_CENTER_PAD) {
                 *y = y0;
                 return 2;
             }
             return 0;
         case S_FENCE_Z:
-            if (fabs(fx) < 0.25 + 0.9*COLLISION_PAD) {
+            if (fabs(fx) < COLLISION_CENTER_PAD) {
                 *y = y0;
                 return 2;
             }
@@ -494,7 +495,7 @@ int collide_pz(W w, float fx, float fy, float fz, float cz, float *z)
             }
             return 0;
         case S_FENCE_Z:
-            if (fabs(fx) < 0.25 + 0.9*COLLISION_PAD) {
+            if (fabs(fx) < COLLISION_CENTER_PAD) {
                 *z = z0;
                 return 4;
             }
@@ -529,7 +530,7 @@ int collide_nz(W w, float fx, float fy, float fz, float cz, float *z)
             }
             return 0;
         case S_FENCE_Z:
-            if (fabs(fx) < 0.25 + 0.9*COLLISION_PAD) {
+            if (fabs(fx) < COLLISION_CENTER_PAD) {
                 *z = z0;
                 return 4;
             }

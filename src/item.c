@@ -330,7 +330,7 @@ int is_transparent(W w) {
             case M_GLASS:
             case M_LEAVES:
             //case M_CLOUD:
-            case M_WATER:
+            //case M_WATER: // this really slows down calculations in spots
                 return 1;
             default:
                 return 0;

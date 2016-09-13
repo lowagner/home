@@ -559,6 +559,8 @@ int collide(int height, float *x, float *y, float *z) {
     if (fy > COLLISION_PAD) {
         head_hit |= collide_ny((W){.value=map_get(map, cx, cy + 1, cz)}, fx, fy, fz, cy, y);
         result |= head_hit;
+        if (head_hit)
+            dy += 1;
     }
     for (; dy < height-1; dy++) {
         int body_hit = body_collide((W){.value=map_get(map, cx, cy, cz)}, fx, fy, fz, cx, cy, cz, x, y, z);
@@ -573,11 +575,6 @@ int collide(int height, float *x, float *y, float *z) {
             result |= collide_px((W){.value=map_get(map, cx - 1, cy - dy, cz)}, fx, fy, fz, cx, x); 
         else if (fx > COLLISION_PAD) 
             result |= collide_nx((W){.value=map_get(map, cx + 1, cy - dy, cz)}, fx, fy, fz, cx, x);
-        // TODO:  do we need to check above and below if we traverse from head (above) to feet (below)?
-        //if (fy < -COLLISION_PAD)
-        //    result |= collide_py((W){.value=map_get(map, cx, cy - dy - 1, cz)}, fx, fy, fz, cy, y);
-        //else if (fy > COLLISION_PAD)
-        //    result |= collide_ny((W){.value=map_get(map, cx, cy - dy + 1, cz)}, fx, fy, fz, cy, y);
         if (fz < -COLLISION_PAD)
             result |= collide_pz((W){.value=map_get(map, cx, cy - dy, cz - 1)}, fx, fy, fz, cz, z);
         else if (fz > COLLISION_PAD)
@@ -598,8 +595,6 @@ int collide(int height, float *x, float *y, float *z) {
             result |= foot_collide_nx((W){.value=map_get(map, cx + 1, cy - dy, cz)}, fx, fy, fz, cx, x);
         if (fy < -COLLISION_PAD)
             result |= foot_collide_py((W){.value=map_get(map, cx, cy - dy - 1, cz)}, fx, fy, fz, cy, y);
-        //else if (fy > COLLISION_PAD)
-        //    result |= foot_collide_ny((W){.value=map_get(map, cx, cy - dy + 1, cz)}, fx, fy, fz, cy, y);
         if (fz < -COLLISION_PAD)
             result |= foot_collide_pz((W){.value=map_get(map, cx, cy - dy, cz - 1)}, fx, fy, fz, cz, z);
         else if (fz > COLLISION_PAD)

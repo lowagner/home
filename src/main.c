@@ -1099,7 +1099,10 @@ void compute_chunk(WorkerItem *item) {
         int f4 = !opaque[XYZ(x, y - 1, z)] && (ey > 0);
         int f5 = !opaque[XYZ(x, y, z - 1)];
         int f6 = !opaque[XYZ(x, y, z + 1)];
-        int total = count_item_faces(f1, f2, f3, f4, f5, f6, w);
+        int total = f1 + f2 + f3 + f4 + f5 + f6;
+        if (total == 0)
+            continue;
+        total = count_item_faces(f1, f2, f3, f4, f5, f6, w);
         if (total == 0)
             continue;
         miny = MIN(miny, ey);

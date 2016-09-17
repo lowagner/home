@@ -18,24 +18,28 @@
 #define S_HALF_NY 3 // Negative Y
 #define S_CROSS 4 // a sphere or a cross or something else invariant with rotations about Y
 // stair shapes
-#define S_STAIR_PX 5 // half-by-half step on -Y against +X
+#define S_STAIR_PX 5 // quarter of a cube in -Y step against +X
 #define S_STAIR_PZ 6
 #define S_STAIR_NX 7
 #define S_STAIR_NZ 8
+#define S_STAIR_PXPZ 9 // eighth of a cube against +X +Z in -Y
+#define S_STAIR_NXPZ 10
+#define S_STAIR_NXNZ 11
+#define S_STAIR_PXNZ 12
 // wall shapes
-#define S_HALF_PX 9
-#define S_HALF_PZ 10
-#define S_HALF_NX 11
-#define S_HALF_NZ 12
-#define S_PXPZ 13 // half-by-half post on +X +Z corner
-#define S_NXPZ 14
-#define S_NXNZ 15
-#define S_PXNZ 16
+#define S_HALF_PX 13 // half a cube against +X side
+#define S_HALF_PZ 14
+#define S_HALF_NX 15
+#define S_HALF_NZ 16
+#define S_PXPZ 17 // half-by-half post on +X +Z corner
+#define S_NXPZ 18
+#define S_NXNZ 19
+#define S_PXNZ 20
 // fence/window things (centered)
-#define S_FENCE_X 17
-#define S_FENCE_Z 18
-#define S_FENCEY_X 19 // vertical slats, along x
-#define S_FENCEY_Z 20
+#define S_FENCE_X 21
+#define S_FENCE_Z 22
+#define S_FENCEY_X 23 // vertical slats, along x
+#define S_FENCEY_Z 24
 // can add a few here before the plants at 127:
 #define S_PLANT 127
 // don't add any other shapes after 127.

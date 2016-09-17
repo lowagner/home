@@ -901,8 +901,12 @@ static int count_item_faces(int fnx, int fpx, int fpy, int fny, int fnz, int fpz
             return fnx + fpx + fpy + 1 + fnz + fpz;
         case S_STAIR_PX:
             return 1 + fpx + 1 + fny + fnz + fpz;
+        case S_STAIR_PZ:
+            return fnx + fpx + 1 + fny + 1 + fpz;
         case S_STAIR_NX:
             return fnx + 1 + 1 + fny + fnz + fpz;
+        case S_STAIR_NZ:
+            return fnx + fpx + 1 + fny + fnz + 1;
         case S_HALF_PX:
             return 1 + fpx + fpy + fny + fnz + fpz;
         case S_HALF_NX:
@@ -975,6 +979,14 @@ static int add_item_faces(float *data, float ao[6][4], float light[6][4],
                 ex, ey, ez, n, ew);
             return 1 + fpx + 1 + fny + fnz + fpz;
         }
+        case S_STAIR_PZ:
+        {
+            make_stair_pz(
+                data, ao, light,
+                fnx, fpx, 1, fny, 1, fpz,
+                ex, ey, ez, n, ew);
+            return fnx + fpx + 1 + fny + 1 + fpz;
+        }
         case S_STAIR_NX:
         {
             make_stair_nx(
@@ -982,6 +994,14 @@ static int add_item_faces(float *data, float ao[6][4], float light[6][4],
                 fnx, 1, 1, fny, fnz, fpz,
                 ex, ey, ez, n, ew);
             return fnx + 1 + 1 + fny + fnz + fpz;
+        }
+        case S_STAIR_NZ:
+        {
+            make_stair_nz(
+                data, ao, light,
+                fnx, fpx, 1, fny, fnz, 1,
+                ex, ey, ez, n, ew);
+            return fnx + fpx + 1 + fny + fnz + 1;
         }
         case S_HALF_PX:
         {

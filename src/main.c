@@ -2664,24 +2664,25 @@ void handle_movement(double dt) {
         s->x += vx;
         s->y += vy + dy * ut;
         s->z += vz;
-        int c = collide(PLAYER_HEIGHT, &s->x, &s->y, &s->z);
+        int c = collide(PLAYER_HEIGHT, &s->x, &s->y, &s->z, vy + dy * ut > 0);
         // TODO:  reduce player speed (built up speed) when hitting stuff in x or z
         if (c) {
-            if (c & 8) {
-                // hard stop, reverse motion and quit
-                s->x -= vx;
-                s->y -= vy - dy * ut;
-                s->z -= vz;
-                break;
-            }
-            else {
+            //if (c & 8) {
+            //    // hard stop, reverse motion and quit
+            //    // TODO: see if this is useful at all, maybe remove.
+            //    s->x -= vx;
+            //    s->y -= vy - dy * ut;
+            //    s->z -= vz;
+            //    break;
+            //}
+            //else {
                 if (c & 1) // x
                     vx = 0;
                 if (c & 2) // y 
                     vy = dy = 0;
                 if (c & 4) // z
                     vz = 0;
-            }
+            //}
         }
     }
     if (s->y < 0) {

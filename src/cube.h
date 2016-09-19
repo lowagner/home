@@ -59,6 +59,26 @@ void make_stair_nz(
     int left, int right, int top, int bottom, int front, int back,
     float x, float y, float z, float n, W w);
 
+void make_stair_pxpz(
+    float *data, float ao[6][4], float light[6][4],
+    int left, int right, int top, int bottom, int front, int back,
+    float x, float y, float z, float n, W w);
+
+void make_stair_nxpz(
+    float *data, float ao[6][4], float light[6][4],
+    int left, int right, int top, int bottom, int front, int back,
+    float x, float y, float z, float n, W w);
+
+void make_stair_nxnz(
+    float *data, float ao[6][4], float light[6][4],
+    int left, int right, int top, int bottom, int front, int back,
+    float x, float y, float z, float n, W w);
+
+void make_stair_pxnz(
+    float *data, float ao[6][4], float light[6][4],
+    int left, int right, int top, int bottom, int front, int back,
+    float x, float y, float z, float n, W w);
+
 void make_half_px(
     float *data, float ao[6][4], float light[6][4],
     int left, int right, int top, int bottom, int front, int back,

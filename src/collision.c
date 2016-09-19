@@ -61,6 +61,14 @@ int foot_collide(W w, float fx, float fy, float fz, float cx, float cy, float cz
                 }
             }
             return 0;
+        case S_STAIR_PXPZ:
+            if (fx > -COLLISION_PAD && fz > -COLLISION_PAD) {
+                if (fy < COLLISION_PAD) {
+                    *y = cy + COLLISION_PAD;
+                    return 2;
+                }
+            }
+            return 0;
         case S_HALF_PX:
             if (fx > -COLLISION_PAD) {
                 *x = cx - COLLISION_PAD;
@@ -308,6 +316,8 @@ int foot_collide_nz(W w, float fx, float fy, float fz, float cz, float *z)
 int body_collide(W w, float fx, float fy, float fz, float cx, float cy, float cz, float *x, float *y, float *z)
 {
     // push down if colliding into something
+    // TODO:  push outward for objects that are taking up half the space
+    // maybe don't push down unless object is only partially in Y
     if (w.value == 0 || is_plant(w) || w.material == M_WATER || w.material == M_CLOUD)
         return 0;
     int shape = w.shape > 0 ? w.shape : -w.shape;
@@ -342,6 +352,12 @@ int body_collide(W w, float fx, float fy, float fz, float cx, float cy, float cz
             return 0;
         case S_STAIR_NZ:
             if (fz < COLLISION_PAD) {
+                *y = cy - COLLISION_PAD - 0.5;
+                return 2;
+            }
+            return 0;
+        case S_STAIR_PXPZ:
+            if (fx > -COLLISION_PAD && fz > -COLLISION_PAD) {
                 *y = cy - COLLISION_PAD - 0.5;
                 return 2;
             }
@@ -426,6 +442,12 @@ int collide_px(W w, float fx, float fy, float fz, float cx, float *x)
         case S_HALF_NZ:
         case S_STAIR_NZ:
             if (fz < COLLISION_PAD) {
+                *x = x0;
+                return 1;
+            }
+            return 0;
+        case S_STAIR_PXPZ:
+            if (fx > -COLLISION_PAD && fz > -COLLISION_PAD) {
                 *x = x0;
                 return 1;
             }
@@ -518,6 +540,12 @@ int collide_ny(W w, float fx, float fy, float fz, float cy, float *y)
                 return 2;
             }
             return 0;
+        case S_STAIR_PXPZ:
+            if (fx > -COLLISION_PAD && fz > -COLLISION_PAD) {
+                *y = y0;
+                return 2;
+            }
+            return 0;
         case S_FENCE_X:
             if (fabs(fz) < COLLISION_CENTER_PAD) {
                 *y = y0;
@@ -555,9 +583,15 @@ int collide_pz(W w, float fx, float fy, float fz, float cz, float *z)
                 return 4;
             }
             return 0;
-        case S_STAIR_NZ:
+        case S_STAIR_NX:
         case S_HALF_NX:
             if (fx < COLLISION_PAD) {
+                *z = z0;
+                return 4;
+            }
+            return 0;
+        case S_STAIR_PXPZ:
+            if (fx > -COLLISION_PAD && fz > -COLLISION_PAD) {
                 *z = z0;
                 return 4;
             }

@@ -811,21 +811,20 @@ int collide(int height, float *x, float *y, float *z, const int going_up) {
     float fy = *y - cy;
     float fz = *z - cz;
     int dy = 0;
-    if (going_up) {
-        if (fy > COLLISION_PAD) {
-            result |= head_collide_ny((W){.value=map_get(map, cx, cy + 1, cz)}, fx, fy, fz, cy, y);
-        }
-        else {
-            result |= head_collide((W){.value=map_get(map, cx, cy, cz)}, fx, fy, fz, cy, y);
-        }
+    if (fy > COLLISION_PAD) {
+        result |= head_collide_ny((W){.value=map_get(map, cx, cy + 1, cz)}, fx, fy, fz, cy, y);
+        if (!result)
+            dy = -1;
+        goto collide_inner_loop;
+    }
+    else if (going_up) {
+        result |= head_collide((W){.value=map_get(map, cx, cy, cz)}, fx, fy, fz, cy, y);
+        goto collide_inner_loop;
     }
     for (; dy < height-1; dy++) {
-        int body_hit = body_collide((W){.value=map_get(map, cx, cy, cz)}, fx, fy, fz, cx, cy, cz, x, y, z);
-        if (body_hit) {
-            result |= body_hit;
-            continue;
-        }
-
+        result |= body_collide((W){.value=map_get(map, cx, cy, cz)}, fx, fy, fz, cx, cy, cz, x, y, z);
+        
+      collide_inner_loop:
         if (fx < -COLLISION_PAD)
             result |= body_collide_px((W){.value=map_get(map, cx - 1, cy - dy, cz)}, fx, fy, fz, cx, x); 
         else if (fx > COLLISION_PAD) 
@@ -835,11 +834,6 @@ int collide(int height, float *x, float *y, float *z, const int going_up) {
         else if (fz > COLLISION_PAD)
             result |= body_collide_nz((W){.value=map_get(map, cx, cy - dy, cz + 1)}, fx, fy, fz, cz, z);
     }
-    /*
-    TODO:
-    when walking up a slope into a ceiling, your head can poke through.  ouch!
-    also you can jump through holes that should be too small for you to fit through
-    */
     int foot_hit = foot_collide((W){.value=map_get(map, cx, cy - dy, cz)}, fx, fy, fz, cx, cy, cz, x, y, z);
     if (fy < COLLISION_PAD-0.01 && !foot_hit) { 
         // don't collide feet with nearby objects unless we're far enough down;

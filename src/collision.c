@@ -69,6 +69,30 @@ int foot_collide(W w, float fx, float fy, float fz, float cx, float cy, float cz
                 }
             }
             return 0;
+        case S_STAIR_NXPZ:
+            if (fx < COLLISION_PAD && fz > -COLLISION_PAD) {
+                if (fy < COLLISION_PAD) {
+                    *y = cy + COLLISION_PAD;
+                    return 2;
+                }
+            }
+            return 0;
+        case S_STAIR_NXNZ:
+            if (fx < COLLISION_PAD && fz < COLLISION_PAD) {
+                if (fy < COLLISION_PAD) {
+                    *y = cy + COLLISION_PAD;
+                    return 2;
+                }
+            }
+            return 0;
+        case S_STAIR_PXNZ:
+            if (fx > -COLLISION_PAD && fz < COLLISION_PAD) {
+                if (fy < COLLISION_PAD) {
+                    *y = cy + COLLISION_PAD;
+                    return 2;
+                }
+            }
+            return 0;
         case S_HALF_PX:
             if (fx > -COLLISION_PAD) {
                 if (fy > 0) {
@@ -424,6 +448,57 @@ int body_collide(W w, float fx, float fy, float fz, float cx, float cy, float cz
                 }
             }
             return 0;
+        case S_STAIR_NXPZ:
+            if (fx < COLLISION_PAD && fz > -COLLISION_PAD) {
+                if (-fx == fz) {
+                    *x = cx + COLLISION_PAD;
+                    *z = cz - COLLISION_PAD;
+                    return 5;
+                }
+                else if (-fx > fz) {
+                    *z = cz - COLLISION_PAD;
+                    return 4;
+                }
+                else {
+                    *x = cx + COLLISION_PAD;
+                    return 1;
+                }
+            }
+            return 0;
+        case S_STAIR_NXNZ:
+            if (fx < COLLISION_PAD && fz < COLLISION_PAD) {
+                if (fx == fz) {
+                    *x = cx + COLLISION_PAD;
+                    *z = cz + COLLISION_PAD;
+                    return 5;
+                }
+                else if (fx < fz) {
+                    *z = cz + COLLISION_PAD;
+                    return 4;
+                }
+                else {
+                    *x = cx + COLLISION_PAD;
+                    return 1;
+                }
+            }
+            return 0;
+        case S_STAIR_PXNZ:
+            if (fx > -COLLISION_PAD && fz < COLLISION_PAD) {
+                if (fx == -fz) {
+                    *x = cx - COLLISION_PAD;
+                    *z = cz + COLLISION_PAD;
+                    return 5;
+                }
+                else if (fx > -fz) {
+                    *z = cz + COLLISION_PAD;
+                    return 4;
+                }
+                else {
+                    *x = cx - COLLISION_PAD;
+                    return 1;
+                }
+            }
+            return 0;
         case S_HALF_PX:
             if (fx > -COLLISION_PAD) {
                 *x = cx - COLLISION_PAD;
@@ -494,22 +569,18 @@ int body_collide_px(W w, float fx, float fy, float fz, float cx, float *x)
         case S_HALF_PX:
             *x = x0;
             return 1;
-        case S_HALF_PZ:
         case S_STAIR_PZ:
-            if (fz > -COLLISION_PAD) {
-                *x = x0;
-                return 1;
-            }
-            return 0;
-        case S_HALF_NZ:
-        case S_STAIR_NZ:
-            if (fz < COLLISION_PAD) {
-                *x = x0;
-                return 1;
-            }
-            return 0;
         case S_STAIR_PXPZ:
+        case S_HALF_PZ:
             if (fz > -COLLISION_PAD) {
+                *x = x0;
+                return 1;
+            }
+            return 0;
+        case S_STAIR_NZ:
+        case S_STAIR_PXNZ:
+        case S_HALF_NZ:
+            if (fz < COLLISION_PAD) {
                 *x = x0;
                 return 1;
             }
@@ -539,6 +610,7 @@ int body_collide_nx(W w, float fx, float fy, float fz, float cx, float *x)
             *x = x0;
             return 1;
         case S_STAIR_PZ:
+        case S_STAIR_NXPZ:
         case S_HALF_PZ:
             if (fz > -COLLISION_PAD) {
                 *x = x0;
@@ -546,6 +618,7 @@ int body_collide_nx(W w, float fx, float fy, float fz, float cx, float *x)
             }
             return 0;
         case S_STAIR_NZ:
+        case S_STAIR_NXNZ:
         case S_HALF_NZ:
             if (fz < COLLISION_PAD) {
                 *x = x0;
@@ -608,6 +681,24 @@ int head_collide_ny(W w, float fx, float fy, float fz, float cy, float *y)
                 return 2;
             }
             return 0;
+        case S_STAIR_NXPZ:
+            if (fx < COLLISION_PAD && fz > -COLLISION_PAD) {
+                *y = y0;
+                return 2;
+            }
+            return 0;
+        case S_STAIR_NXNZ:
+            if (fx < COLLISION_PAD && fz < COLLISION_PAD) {
+                *y = y0;
+                return 2;
+            }
+            return 0;
+        case S_STAIR_PXNZ:
+            if (fx > -COLLISION_PAD && fz < COLLISION_PAD) {
+                *y = y0;
+                return 2;
+            }
+            return 0;
         case S_FENCE_X:
             if (fabs(fz) < COLLISION_CENTER_PAD) {
                 *y = y0;
@@ -639,6 +730,7 @@ int body_collide_pz(W w, float fx, float fy, float fz, float cz, float *z)
             *z = z0;
             return 4;
         case S_STAIR_PX:
+        case S_STAIR_PXPZ:
         case S_HALF_PX:
             if (fx > -COLLISION_PAD) {
                 *z = z0;
@@ -646,14 +738,9 @@ int body_collide_pz(W w, float fx, float fy, float fz, float cz, float *z)
             }
             return 0;
         case S_STAIR_NX:
+        case S_STAIR_NXPZ:
         case S_HALF_NX:
             if (fx < COLLISION_PAD) {
-                *z = z0;
-                return 4;
-            }
-            return 0;
-        case S_STAIR_PXPZ:
-            if (fx > -COLLISION_PAD) {
                 *z = z0;
                 return 4;
             }
@@ -683,6 +770,7 @@ int body_collide_nz(W w, float fx, float fy, float fz, float cz, float *z)
             *z = z0;
             return 4;
         case S_STAIR_PX:
+        case S_STAIR_PXNZ:
         case S_HALF_PX:
             if (fx > -COLLISION_PAD) {
                 *z = z0;
@@ -690,6 +778,7 @@ int body_collide_nz(W w, float fx, float fy, float fz, float cz, float *z)
             }
             return 0;
         case S_STAIR_NX:
+        case S_STAIR_NXNZ:
         case S_HALF_NX:
             if (fx < COLLISION_PAD) {
                 *z = z0;

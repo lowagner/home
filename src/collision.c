@@ -728,7 +728,6 @@ int collide(int height, float *x, float *y, float *z, const int going_up) {
         }
         else {
             result |= head_collide((W){.value=map_get(map, cx, cy, cz)}, fx, fy, fz, cy, y);
-            dy += 1;
         }
     }
     for (; dy < height-1; dy++) {
@@ -767,11 +766,6 @@ int collide(int height, float *x, float *y, float *z, const int going_up) {
         else if (fz > COLLISION_PAD)
             result |= foot_collide_nz((W){.value=map_get(map, cx, cy - dy, cz + 1)}, fx, fy, fz, cz, z);
     }
-    //if ((head_hit & 2) && (foot_hit & 2)) {
-    //    // this looks bad, may have hit our head and foot somewhere
-    //    printf("ouch\n");
-    //    return 8;
-    //}
     result |= foot_hit;
     return result;
 }
